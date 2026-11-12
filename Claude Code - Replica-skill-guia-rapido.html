@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Replica Skill — Guia de referência rápida</title>
+<style>
+:root{--bg:#0f1117;--card:#171a23;--text:#e6e9ef;--muted:#a4acbd;--accent:#7aa2f7;--ok:#9ece6a;--warn:#e0af68;--code:#1b1f2a;--border:#2a2f3d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:32px 20px 64px}
+h1{font-size:2rem;margin:0 0 8px}
+h2{margin:38px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size:1.35rem}
+h3{margin:22px 0 8px;font-size:1.05rem}
+p,li{color:var(--muted)}
+strong{color:var(--text)}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:var(--code);border:1px solid var(--border);border-radius:6px;padding:2px 6px;font-size:.9em;color:#c8d3f5}
+pre{background:var(--code);border:1px solid var(--border);border-radius:10px;padding:14px 16px;overflow:auto;color:#c8d3f5;font-size:.9rem}
+pre code{background:none;border:0;padding:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin:14px 0}
+table{width:100%;border-collapse:collapse;margin:12px 0;overflow:hidden;border:1px solid var(--border);border-radius:12px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:#1d2130;color:var(--text);font-weight:600}
+tr:last-child td{border-bottom:0}
+td:first-child{white-space:nowrap}
+.badge{display:inline-block;background:#242a3a;color:#c8d3f5;border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:.78rem}
+.note{border-left:3px solid var(--warn);background:#20202a;padding:12px 16px;border-radius:8px;color:var(--muted)}
+.ok{border-left-color:var(--ok)}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.small{font-size:.86rem}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Replica Skill — Guia de referência rápida</h1>
+<p>Conjunto de <strong>11 skills para Claude/Claude Code</strong> para planejar, reconstruir, testar, rebrandar e publicar uma versão própria de um aplicativo. Repositório: <a href="https://github.com/Jakeschincariol/replica-skill">Jakeschincariol/replica-skill</a>.</p>
+<p><span class="badge">MIT</span> <span class="badge">Sem cadastro</span> <span class="badge">Sem chave de API obrigatória</span> <span class="badge">Python 3.8+</span></p>
+</header>
+
+<section>
+<h2>Instalação</h2>
+<div class="card">
+<h3>1. Instalar pelo Claude</h3>
+<p>Cole no chat do Claude:</p>
+<pre><code>https://github.com/Jakeschincariol/replica-skill
+install skill</code></pre>
+</div>
+
+<div class="card">
+<h3>2. Instalar como plugin no Claude Code</h3>
+<pre><code>/plugin marketplace add Jakeschincariol/replica-skill
+/plugin install replica-skill@replica-skill</code></pre>
+<p>Os comandos aparecem com namespace, por exemplo: <code>/replica-skill:replica-recon</code>.</p>
+</div>
+
+<div class="card">
+<h3>3. Instalação global manual</h3>
+<pre><code>git clone https://github.com/Jakeschincariol/replica-skill.git
+cp -r replica-skill/replica-* ~/.claude/skills/</code></pre>
+<p>Depois, use comandos sem namespace, como <code>/replica-recon</code>.</p>
+</div>
+
+<div class="card">
+<h3>4. Instalação por projeto</h3>
+<pre><code>git clone https://github.com/Jakeschincariol/replica-skill.git
+cp -r replica-skill/replica-* caminho/do/seu/projeto/.claude/skills/</code></pre>
+</div>
+
+<div class="card">
+<h3>5. Usar sem Claude Code</h3>
+<p>Abra um <code>SKILL.md</code> específico, copie seu conteúdo no início de um chat e instrua o modelo a segui-lo como modo de trabalho. Nesse formato, os utilitários Python do repositório não ficam disponíveis automaticamente.</p>
+</div>
+</section>
+
+<section>
+<h2>As 11 skills</h2>
+<table>
+<tr><th>Comando</th><th>Função</th><th>Artefatos / saídas</th></tr>
+<tr><td><code>/replica-recon</code></td><td>Engenharia reversa do app-alvo: inventário de telas, fluxos, componentes, modelo de dados inferido e matriz de funcionalidades.</td><td><code>recon-map.md</code>, <code>features.csv</code></td></tr>
+<tr><td><code>/replica-architect</code></td><td>Define stack, esquema de banco, API, índices, regras de acesso e ordem de construção.</td><td><code>architecture.md</code></td></tr>
+<tr><td><code>/replica-design</code></td><td>Cria design system próprio: cores, tipografia, espaçamento, raios, sombras, componentes e checagem de contraste WCAG.</td><td><code>tokens.json</code>, <code>contrast.py</code></td></tr>
+<tr><td><code>/replica-build</code></td><td>Reconstrói a interface e os fluxos, tela por tela, começando pelo shell do app e pelo fluxo principal.</td><td>Interface, telas e estados do app</td></tr>
+<tr><td><code>/replica-backend</code></td><td>Implementa autenticação, banco, migrações, regras de acesso, pagamentos, e-mails, jobs e integrações oficiais.</td><td>Backend funcional</td></tr>
+<tr><td><code>/replica-test</code></td><td>Elabora plano de testes, specs Playwright, executa fluxos e documenta bugs por severidade.</td><td><code>test-plan.md</code>, <code>bug-report.md</code>, <code>e2e.example.spec.ts</code></td></tr>
+<tr><td><code>/replica-diff</code></td><td>Compara sua versão com o original e mede paridade visual e funcional.</td><td><code>imgdiff.py</code>, <code>parity.py</code>, score de paridade</td></tr>
+<tr><td><code>/replica-entrepreneur</code></td><td>Analisa avaliações reais para identificar dores, melhorias, oportunidades e posicionamento.</td><td><code>reviews.py</code>, <code>themes.json</code></td></tr>
+<tr><td><code>/replica-brand</code></td><td>Cria nome, identidade visual e voz próprios; varre o projeto para remover referências ao app original.</td><td>Marca própria, <code>sweep.py</code></td></tr>
+<tr><td><code>/replica-launch</code></td><td>Produz landing page, precificação e listagem para App Store e Google Play.</td><td><code>listing.py</code>, <code>listing.example.json</code></td></tr>
+<tr><td><code>/replica-deploy</code></td><td>Faz preflight, configura produção, orienta DNS e publica no seu domínio.</td><td><code>preflight.md</code>, deploy em produção</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Fluxo de aplicação</h2>
+<p>Execute as skills nesta ordem. Cada etapa lê os artefatos gerados pela anterior na pasta <code>replica/</code> do seu projeto.</p>
+<pre><code>/replica-recon
+/replica-architect
+/replica-design
+/replica-build
+/replica-backend
+/replica-test
+/replica-diff
+/replica-entrepreneur
+/replica-brand
+/replica-launch
+/replica-deploy</code></pre>
+
+<div class="card">
+<h3>Exemplo mínimo</h3>
+<pre><code>/replica-recon https://exemplo.com
+/replica-architect
+/replica-design
+/replica-build
+/replica-backend
+/replica-test
+/replica-diff
+/replica-brand
+/replica-launch
+/replica-deploy</code></pre>
+</div>
+
+<div class="card">
+<h3>Usar uma skill isolada</h3>
+<p>É possível chamar apenas a etapa necessária. Exemplos:</p>
+<pre><code>/replica-recon https://exemplo.com
+/replica-architect
+/replica-entrepreneur
+/replica-brand
+/replica-deploy</code></pre>
+<p>A <code>/replica-entrepreneur</code>, por exemplo, pode ser usada antes da construção para avaliar se vale a pena replicar o produto.</p>
+</div>
+</section>
+
+<section>
+<h2>Comandos das ferramentas</h2>
+<p>Os utilitários usam apenas a biblioteca padrão do Python e não fazem chamadas de rede.</p>
+<pre><code># Comparar layout entre screenshot original e clone
+python3 replica-diff/imgdiff.py original.png clone.png --out diff.png
+
+# Calcular score de paridade e itens faltantes
+python3 replica-diff/parity.py replica/features.csv
+
+# Analisar avaliações fornecidas em CSV
+python3 replica-entrepreneur/reviews.py replica/reviews.csv
+
+# Checar contraste WCAG dos design tokens
+python3 replica-design/contrast.py replica/design/tokens.json
+
+# Procurar resquícios do app original no código
+python3 replica-brand/sweep.py . --avoid "NomeDoAppOriginal"
+
+# Validar listagem de loja
+python3 replica-launch/listing.py replica/launch/listing.json</code></pre>
+
+<div class="card">
+<h3>Testes do próprio repositório</h3>
+<pre><code>python3 -m unittest discover -s tests -v</code></pre>
+</div>
+</section>
+
+<section>
+<h2>Requisitos e limites</h2>
+<div class="note ok">
+<strong>Requisitos:</strong> Claude ou Claude Code; Python 3.8+ somente para os utilitários; nenhum pacote via <code>pip</code> é exigido pelas ferramentas do repositório. Para recursos reais do app, podem ser necessárias contas/chaves próprias, como Stripe, e-mail ou APIs de terceiros.
+</div>
+<div class="note">
+<strong>Uso responsável:</strong> o método é para reconstruir funcionalidades e padrões de UX em estilo clean-room. Não copie código-fonte, logotipos, textos, assets, APIs privadas ou conteúdo proprietário. Faça rebranding antes do deploy e revise marcas registradas, termos de serviço e restrições contratuais antes de monetizar.
+</div>
+</section>
+
+<footer class="small">
+<p>Guia de referência rápida baseado no README e nos arquivos <code>SKILL.md</code> do repositório <a href="https://github.com/Jakeschincariol/replica-skill">replica-skill</a>.</p>
+</footer>
+</main>
+</body>
+</html>
