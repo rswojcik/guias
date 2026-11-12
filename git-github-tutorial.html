@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git & GitHub — Guia Básico</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #080D18;
+      --surface:   #0F1623;
+      --elevated:  #1A2235;
+      --border:    #243049;
+      --accent:    #4DD9AC;
+      --accent-dim:#2A7A62;
+      --amber:     #F0C05A;
+      --red:       #E06C75;
+      --green:     #4DAD7A;
+      --text:      #D8E8F0;
+      --muted:     #6A80A0;
+      --code-bg:   #05090F;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ── */
+    nav {
+      width: 240px;
+      min-width: 240px;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 32px 0 40px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-logo {
+      padding: 0 24px 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .nav-logo span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-logo small {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      padding: 8px 24px 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    nav a {
+      display: block;
+      padding: 7px 24px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13.5px;
+      transition: color .15s, background .15s;
+      border-left: 2px solid transparent;
+    }
+
+    nav a:hover {
+      color: var(--text);
+      background: var(--elevated);
+      border-left-color: var(--accent);
+    }
+
+    nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      max-width: 820px;
+      padding: 64px 56px 100px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      margin-bottom: 72px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 24px;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .3; }
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 600;
+      line-height: 1.15;
+      color: #EAF2FF;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.75;
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      margin-bottom: 64px;
+      scroll-margin-top: 32px;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #EAF2FF;
+      margin-bottom: 4px;
+      letter-spacing: -.5px;
+    }
+
+    .section-divider {
+      width: 32px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+      margin: 8px 0 20px;
+    }
+
+    p { margin-bottom: 14px; font-size: 15px; color: var(--text); }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--amber);
+      margin: 28px 0 10px;
+    }
+
+    /* ── CARDS DOIS BLOCOS ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 22px;
+    }
+
+    .info-card .ic-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .info-card p {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── GLOSSÁRIO ── */
+    .glossary {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .term {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 148px 1fr;
+      gap: 16px;
+      align-items: baseline;
+      transition: border-color .15s;
+    }
+
+    .term:hover { border-color: var(--accent-dim); }
+
+    .term-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .term-def {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .term-def strong { color: var(--text); font-weight: 500; }
+
+    /* ── CÓDIGO ── */
+    .cmd-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 20px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 2;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .cmd-block .bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .cmd-block .bar span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+
+    .bar .r { background: #E06C75; }
+    .bar .y { background: #F0C05A; }
+    .bar .g { background: #4DAD7A; }
+
+    .cmd { color: var(--text); display: block; }
+    .cmd .prompt { color: var(--accent); user-select: none; }
+    .cmd .flag   { color: var(--amber); }
+    .cmd .val    { color: #88CCFF; }
+    .cmd .cmt    { color: var(--muted); font-style: italic; }
+
+    /* ── FLUXO ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 28px 0;
+      flex-wrap: wrap;
+    }
+
+    .flow-step {
+      background: var(--elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .flow-step .fs-icon {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .flow-step .fs-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .flow-arrow {
+      color: var(--accent);
+      font-size: 18px;
+      padding: 0 8px;
+      font-weight: 300;
+    }
+
+    /* ── ALERT / TIP ── */
+    .tip {
+      background: #0E1F17;
+      border: 1px solid #2A5C40;
+      border-left: 3px solid var(--green);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #9BE3B5;
+    }
+
+    .tip strong { color: var(--green); }
+
+    .warn {
+      background: #1A1008;
+      border: 1px solid #5C3D10;
+      border-left: 3px solid var(--amber);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #C9A870;
+    }
+
+    .warn strong { color: var(--amber); }
+
+    /* ── TABELA COMPARATIVA ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+
+    th {
+      background: var(--elevated);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface); }
+    td:first-child { color: var(--text); font-weight: 500; }
+
+    /* ── CHEATSHEET ── */
+    .cheat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .cheat-card {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .cheat-card .cc-head {
+      background: var(--surface);
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cheat-card .cc-body {
+      padding: 12px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 2;
+    }
+
+    .cheat-card .cc-body span { color: var(--text); display: block; }
+    .cheat-card .cc-body span b { color: var(--accent); font-weight: 400; }
+    .cheat-card .cc-body span i { color: var(--muted); font-style: normal; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { display: none; }
+      main { padding: 40px 28px 80px; max-width: 100%; }
+      .two-col, .cheat-grid { grid-template-columns: 1fr; }
+      .term { grid-template-columns: 1fr; gap: 4px; }
+      h1 { font-size: 30px; }
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="nav-logo">
+    <span>git://learn</span>
+    <small>Guia de Desenvolvimento</small>
+  </div>
+
+  <div class="nav-section-label">Fundamentos</div>
+  <a href="#introducao">O que é Git?</a>
+  <a href="#github">Git vs GitHub</a>
+
+  <div class="nav-section-label">Conceitos</div>
+  <a href="#termos">Termos Essenciais</a>
+  <a href="#fluxo">Fluxo de Trabalho</a>
+  <a href="#branches">Branches</a>
+
+  <div class="nav-section-label">Prática</div>
+  <a href="#comandos">Comandos Básicos</a>
+  <a href="#github-flow">GitHub Flow</a>
+  <a href="#cheatsheet">Cheatsheet</a>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">v1.0 · Guia Básico</div>
+    <h1>Aprenda <em>Git</em> &<br>GitHub do zero</h1>
+    <p>
+      Controle de versão é a habilidade mais fundamental do desenvolvimento moderno.
+      Este guia cobre tudo que você precisa para começar — do conceito ao comando.
+    </p>
+  </div>
+
+  <!-- O QUE É GIT -->
+  <section id="introducao">
+    <h2>O que é Git?</h2>
+    <div class="section-divider"></div>
+
+    <p>
+      <strong>Git</strong> é um sistema de controle de versão distribuído. Ele registra cada mudança
+      feita nos seus arquivos ao longo do tempo, permitindo que você volte a qualquer versão
+      anterior, trabalhe em paralelo com outras pessoas e nunca perca trabalho.
+    </p>
+
+    <p>
+      Pense nele como um <strong>histórico completo e ramificável</strong> de tudo que aconteceu
+      no seu projeto — quem mudou o quê, quando e por quê.
+    </p>
+
+    <h3>Por que usar controle de versão?</h3>
+
+    <div class="two-col">
+      <div class="info-card">
+        <div class="ic-title">Sem Git</div>
+        <p>projeto-final.zip · projeto-final-v2.zip · projeto-AGORA-VAI.zip · projeto-final-MESMO.zip</p>
+      </div>
+      <div class="info-card">
+        <div class="ic-title">Com Git</div>
+        <p>Um único repositório com histórico completo, rastreável, reversível e colaborativo.</p>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>Conceito central:</strong> Git não salva cópias inteiras dos arquivos a cada mudança —
+      ele salva apenas as <em>diferenças</em> (diffs), tornando tudo extremamente eficiente.
+    </div>
+  </section>
+
+  <!-- GIT VS GITHUB -->
+  <section id="github">
+    <h2>Git vs GitHub</h2>
+    <div class="section-divider"></div>
+
+    <p>Essa é a confusão mais comum para quem está começando. São coisas distintas:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Aspecto</th>
+          <th>Git</th>
+          <th>GitHub</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>O que é</td>
+          <td>Ferramenta de linha de comando</td>
+          <td>Plataforma web (serviço online)</td>
+        </tr>
+        <tr>
+          <td>Onde roda</td>
+          <td>Na sua máquina local</td>
+          <td>Na nuvem (github.com)</td>
+        </tr>
+        <tr>
+          <td>Função</td>
+          <td>Gerencia o histórico de versões</td>
+          <td>Hospeda repositórios e facilita colaboração</td>
+        </tr>
+        <tr>
+          <td>Requer internet</td>
+          <td>Não — funciona offline</td>
+          <td>Sim</td>
+        </tr>
+        <tr>
+          <td>Alternativas</td>
+          <td>Mercurial, SVN</td>
+          <td>GitLab, Bitbucket, Azure DevOps</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="warn">
+      <strong>Resumo simples:</strong> Git é o motor. GitHub é a garagem onde você estaciona
+      e compartilha o carro com outros.
+    </div>
+  </section>
+
+  <!-- TERMOS ESSENCIAIS -->
+  <section id="termos">
+    <h2>Termos Essenciais</h2>
+    <div class="section-divider"></div>
+    <p>Esses são os termos que você vai encontrar no dia a dia. Memorize-os:</p>
+
+    <div class="glossary">
+
+      <div class="term">
+        <span class="term-name">repository</span>
+        <span class="term-def">A <strong>pasta do projeto</strong> monitorada pelo Git. Contém todos os arquivos e o histórico completo de mudanças. Pode ser local (na sua máquina) ou remoto (no GitHub).</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">commit</span>
+        <span class="term-def">Um <strong>ponto de salvamento</strong> no histórico. Cada commit registra quais arquivos mudaram, quem fez a mudança, quando, e uma mensagem descrevendo o que foi feito.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">branch</span>
+        <span class="term-def">Uma <strong>linha paralela de desenvolvimento</strong>. Permite trabalhar em funcionalidades novas sem afetar o código principal. A branch padrão geralmente se chama <code>main</code> ou <code>master</code>.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">merge</span>
+        <span class="term-def"><strong>Unir</strong> o trabalho de uma branch com outra. Quando você termina uma funcionalidade, faz merge da sua branch de volta para a <code>main</code>.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">clone</span>
+        <span class="term-def"><strong>Copiar um repositório remoto</strong> para a sua máquina. Feito uma vez por projeto. Traz todo o histórico junto.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">push</span>
+        <span class="term-def"><strong>Enviar seus commits locais</strong> para o repositório remoto (ex: GitHub). Compartilha seu trabalho com o time.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">pull</span>
+        <span class="term-def"><strong>Baixar e aplicar</strong> commits do repositório remoto na sua máquina. Mantém você atualizado com o que o time fez.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">pull request (PR)</span>
+        <span class="term-def">Uma <strong>solicitação de revisão</strong> no GitHub. Você pede para que seu código em uma branch seja revisado e então mergeado na branch principal.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">fork</span>
+        <span class="term-def"><strong>Cópia independente</strong> de um repositório de outra pessoa no GitHub. Permite contribuir com projetos onde você não tem permissão de acesso direto.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">staging area</span>
+        <span class="term-def">Uma <strong>área intermediária</strong> (também chamada de index) onde você prepara as mudanças antes de commitar. Você escolhe quais arquivos entram no próximo commit.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">conflict</span>
+        <span class="term-def">Quando <strong>duas pessoas editam o mesmo trecho</strong> de um arquivo e o Git não consegue decidir qual versão manter. Você precisa resolver manualmente.</span>
+      </div>
+
+      <div class="term">
+        <span class="term-name">.gitignore</span>
+        <span class="term-def">Arquivo de configuração que diz ao Git <strong>quais arquivos ignorar</strong> — como senhas, dependências (node_modules) e arquivos temporários.</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FLUXO DE TRABALHO -->
+  <section id="fluxo">
+    <h2>Fluxo de Trabalho</h2>
+    <div class="section-divider"></div>
+
+    <p>O ciclo básico do Git tem quatro estados pelos quais seus arquivos passam:</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="fs-icon">✏️</div>
+        <div class="fs-label">Working Dir</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="fs-icon">📋</div>
+        <div class="fs-label">Staging Area</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="fs-icon">🗃️</div>
+        <div class="fs-label">Local Repo</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="fs-icon">☁️</div>
+        <div class="fs-label">Remote (GitHub)</div>
+      </div>
+    </div>
+
+    <p>O que acontece em cada etapa:</p>
+
+    <div class="glossary">
+      <div class="term">
+        <span class="term-name">Working Directory</span>
+        <span class="term-def">Onde você <strong>edita os arquivos</strong> normalmente. O Git observa as mudanças mas ainda não as rastreia.</span>
+      </div>
+      <div class="term">
+        <span class="term-name">Staging Area</span>
+        <span class="term-def">Você usa <code>git add</code> para <strong>selecionar</strong> quais mudanças entrarão no próximo commit.</span>
+      </div>
+      <div class="term">
+        <span class="term-name">Local Repository</span>
+        <span class="term-def">Com <code>git commit</code>, as mudanças são <strong>salvas permanentemente</strong> no histórico local.</span>
+      </div>
+      <div class="term">
+        <span class="term-name">Remote Repository</span>
+        <span class="term-def">Com <code>git push</code>, seus commits vão para o GitHub, ficando <strong>acessíveis ao time</strong>.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRANCHES -->
+  <section id="branches">
+    <h2>Branches — Trabalhando em Paralelo</h2>
+    <div class="section-divider"></div>
+
+    <p>
+      Branches são o coração do trabalho em equipe com Git. A ideia é simples:
+      a branch <code>main</code> é o código estável, em produção. Para qualquer mudança,
+      você cria uma branch separada, trabalha nela, e só junta de volta quando estiver pronto.
+    </p>
+
+    <div class="cmd-block">
+      <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      <span class="cmd"><span class="prompt">$ </span>git branch <span class="cmt"># lista todas as branches</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git branch <span class="val">feature/login</span>     <span class="cmt"># cria uma nova branch</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git checkout <span class="val">feature/login</span>  <span class="cmt"># muda para essa branch</span></span>
+      <span class="cmd"></span>
+      <span class="cmd"><span class="cmt"># Atalho: criar e já mudar para a branch</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git checkout <span class="flag">-b</span> <span class="val">feature/login</span></span>
+    </div>
+
+    <div class="tip">
+      <strong>Convenção de nomenclatura:</strong> Use prefixos para organizar —
+      <code>feature/</code> para novas funcionalidades, <code>fix/</code> para correções de bugs,
+      <code>hotfix/</code> para correções urgentes em produção.
+    </div>
+  </section>
+
+  <!-- COMANDOS BÁSICOS -->
+  <section id="comandos">
+    <h2>Comandos Básicos</h2>
+    <div class="section-divider"></div>
+
+    <h3>Configuração inicial (apenas uma vez)</h3>
+
+    <div class="cmd-block">
+      <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      <span class="cmd"><span class="prompt">$ </span>git config <span class="flag">--global</span> user.name <span class="val">"Seu Nome"</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git config <span class="flag">--global</span> user.email <span class="val">"seu@email.com"</span></span>
+    </div>
+
+    <h3>Iniciando um projeto</h3>
+
+    <div class="cmd-block">
+      <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      <span class="cmd"><span class="cmt"># Opção 1: Novo repositório local</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git init</span>
+      <span class="cmd"></span>
+      <span class="cmd"><span class="cmt"># Opção 2: Clonar repositório existente do GitHub</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git clone <span class="val">https://github.com/usuario/repositorio.git</span></span>
+    </div>
+
+    <h3>O ciclo diário</h3>
+
+    <div class="cmd-block">
+      <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      <span class="cmd"><span class="cmt"># Ver o estado atual dos arquivos</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git status</span>
+      <span class="cmd"></span>
+      <span class="cmd"><span class="cmt"># Adicionar arquivos ao staging</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git add <span class="val">arquivo.txt</span>         <span class="cmt"># arquivo específico</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git add <span class="val">.</span>                 <span class="cmt"># todos os arquivos alterados</span></span>
+      <span class="cmd"></span>
+      <span class="cmd"><span class="cmt"># Criar um commit</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git commit <span class="flag">-m</span> <span class="val">"feat: adiciona tela de login"</span></span>
+      <span class="cmd"></span>
+      <span class="cmd"><span class="cmt"># Enviar para o GitHub</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git push <span class="val">origin main</span></span>
+      <span class="cmd"></span>
+      <span class="cmd"><span class="cmt"># Baixar atualizações do time</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git pull <span class="val">origin main</span></span>
+    </div>
+
+    <h3>Inspecionando o histórico</h3>
+
+    <div class="cmd-block">
+      <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      <span class="cmd"><span class="prompt">$ </span>git log <span class="flag">--oneline</span>         <span class="cmt"># histórico compacto</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git diff                   <span class="cmt"># o que mudou mas ainda não está no staging</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git diff <span class="flag">--staged</span>          <span class="cmt"># o que está no staging</span></span>
+    </div>
+
+    <h3>Desfazendo mudanças</h3>
+
+    <div class="cmd-block">
+      <div class="bar"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      <span class="cmd"><span class="cmt"># Descartar mudanças no working directory</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git checkout -- <span class="val">arquivo.txt</span></span>
+      <span class="cmd"></span>
+      <span class="cmd"><span class="cmt"># Remover arquivo do staging (sem perder mudanças)</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git restore <span class="flag">--staged</span> <span class="val">arquivo.txt</span></span>
+      <span class="cmd"></span>
+      <span class="cmd"><span class="cmt"># Guardar mudanças temporariamente (útil ao trocar de branch)</span></span>
+      <span class="cmd"><span class="prompt">$ </span>git stash</span>
+      <span class="cmd"><span class="prompt">$ </span>git stash pop   <span class="cmt"># recupera o que foi guardado</span></span>
+    </div>
+
+    <div class="warn">
+      <strong>Cuidado:</strong> Evite usar <code>git push --force</code> em branches compartilhadas com o time.
+      Isso reescreve o histórico remoto e pode apagar o trabalho de outras pessoas.
+    </div>
+  </section>
+
+  <!-- GITHUB FLOW -->
+  <section id="github-flow">
+    <h2>GitHub Flow — Colaboração na Prática</h2>
+    <div class="section-divider"></div>
+
+    <p>
+      O GitHub Flow é o processo padrão de trabalho em equipe. São 6 etapas simples:
+    </p>
+
+    <div class="glossary">
+      <div class="term">
+        <span class="term-name" style="color:var(--amber)">1. branch</span>
+        <span class="term-def">Crie uma branch com nome descritivo a partir da <code>main</code>. Ex: <code>feature/relatorio-pdf</code></span>
+      </div>
+      <div class="term">
+        <span class="term-name" style="color:var(--amber)">2. commit</span>
+        <span class="term-def">Faça commits pequenos e frequentes com mensagens claras. Prefira commits atômicos (uma mudança lógica por commit).</span>
+      </div>
+      <div class="term">
+        <span class="term-name" style="color:var(--amber)">3. push</span>
+        <span class="term-def">Envie sua branch para o GitHub regularmente. Isso cria um backup e permite que o time acompanhe o progresso.</span>
+      </div>
+      <div class="term">
+        <span class="term-name" style="color:var(--amber)">4. pull request</span>
+        <span class="term-def">Abra um Pull Request no GitHub descrevendo o que foi feito e por quê. Solicite revisão de um colega.</span>
+      </div>
+      <div class="term">
+        <span class="term-name" style="color:var(--amber)">5. revisão</span>
+        <span class="term-def">O time revisa o código, deixa comentários. Você responde, ajusta, e faz novos commits na mesma branch.</span>
+      </div>
+      <div class="term">
+        <span class="term-name" style="color:var(--amber)">6. merge</span>
+        <span class="term-def">Após aprovação, o PR é mergeado na <code>main</code>. A branch pode ser deletada. O ciclo recomeça.</span>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>Boas mensagens de commit:</strong> Use o formato
+      <code>tipo: descrição curta</code>. Tipos comuns: <code>feat</code> (funcionalidade), 
+      <code>fix</code> (correção), <code>docs</code> (documentação), <code>refactor</code>, <code>chore</code>.
+    </div>
+  </section>
+
+  <!-- CHEATSHEET -->
+  <section id="cheatsheet">
+    <h2>Cheatsheet</h2>
+    <div class="section-divider"></div>
+    <p>Referência rápida para consulta no dia a dia:</p>
+
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <div class="cc-head">Setup</div>
+        <div class="cc-body">
+          <span><b>git init</b></span>
+          <span><b>git clone</b> <i>&lt;url&gt;</i></span>
+          <span><b>git config</b> --global user.name <i>"nome"</i></span>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cc-head">Commit</div>
+        <div class="cc-body">
+          <span><b>git status</b></span>
+          <span><b>git add</b> <i>&lt;arquivo&gt;</i></span>
+          <span><b>git commit -m</b> <i>"mensagem"</i></span>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cc-head">Branches</div>
+        <div class="cc-body">
+          <span><b>git branch</b> <i>&lt;nome&gt;</i></span>
+          <span><b>git checkout -b</b> <i>&lt;nome&gt;</i></span>
+          <span><b>git merge</b> <i>&lt;branch&gt;</i></span>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cc-head">Remoto</div>
+        <div class="cc-body">
+          <span><b>git push</b> origin <i>&lt;branch&gt;</i></span>
+          <span><b>git pull</b> origin <i>&lt;branch&gt;</i></span>
+          <span><b>git fetch</b></span>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cc-head">Histórico</div>
+        <div class="cc-body">
+          <span><b>git log</b> --oneline</span>
+          <span><b>git diff</b></span>
+          <span><b>git show</b> <i>&lt;commit-hash&gt;</i></span>
+        </div>
+      </div>
+
+      <div class="cheat-card">
+        <div class="cc-head">Desfazer</div>
+        <div class="cc-body">
+          <span><b>git stash</b></span>
+          <span><b>git restore</b> --staged <i>&lt;arquivo&gt;</i></span>
+          <span><b>git revert</b> <i>&lt;commit&gt;</i></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('section[id], .hero');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => link.classList.remove('active'));
+        const id = entry.target.id || 'introducao';
+        const active = document.querySelector(`nav a[href="#${id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -75% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

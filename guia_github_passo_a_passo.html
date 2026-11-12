@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia Passo a Passo — GitHub para as aplicações da empresa</title>
+<style>
+:root{--bg:#f5f7fa;--card:#fff;--text:#202733;--muted:#5d6878;--border:#dfe4ea;--accent:#1f5f99;--accent2:#eaf3fb;--code:#1e2430;--ok:#137547;--warn:#8a5a00;--bad:#9f2d2d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.6}.container{max-width:1100px;margin:0 auto;padding:32px 22px 60px}header,.progress-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px 32px;margin-bottom:20px}h1{margin:0 0 10px;font-size:30px}h2{margin:42px 0 8px;padding-bottom:8px;border-bottom:2px solid var(--border);color:var(--accent)}h3{color:#34465a;margin-top:28px}p{margin:10px 0}table{width:100%;border-collapse:collapse;margin:18px 0;background:var(--card)}th,td{border:1px solid var(--border);padding:9px 11px;text-align:left;vertical-align:top}th{background:var(--accent2)}pre{background:var(--code);color:#f4f7fb;padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5}code{font-family:Consolas,Monaco,monospace}.note,.warning,.danger{padding:14px 17px;border-radius:8px;margin:16px 0}.note{background:#eef6ff;border-left:4px solid var(--accent)}.warning{background:#fff7e8;border-left:4px solid #c88919}.danger{background:#fff0f0;border-left:4px solid var(--bad)}.cover-meta{color:var(--muted)}.step{padding:1px 20px 20px;margin:18px 0;background:var(--card);border:1px solid var(--border);border-radius:12px}.step h2{margin-top:26px}.step-check{display:flex;align-items:center;gap:9px;margin:12px 0 18px;padding:10px 12px;border-radius:7px;background:#f2f6fa;color:#34465a;font-weight:700}.step-check input,.task-check{width:18px;height:18px;accent-color:var(--ok);flex:none}.task-list{list-style:none;padding:0}.task-list li{margin:7px 0}.task-list label{display:flex;align-items:flex-start;gap:9px}.task-list input{margin-top:4px}.progress-panel{position:sticky;top:8px;z-index:5;box-shadow:0 4px 14px #1c2d4012;padding:14px 20px}.progress-row{display:flex;justify-content:space-between;align-items:center;gap:16px}.progress-track{height:12px;background:#e8edf2;border-radius:10px;overflow:hidden;margin-top:10px}.progress-fill{height:100%;width:0;background:var(--ok);transition:width .2s}.progress-actions{display:flex;align-items:center;gap:12px}.progress-actions button{border:1px solid var(--border);background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer;color:var(--text)}.callout-title{font-weight:700}.muted{color:var(--muted)}.done{color:var(--ok)}footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}a{color:#155b91}li{margin:5px 0}.small{font-size:13px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pill{display:inline-block;padding:2px 8px;background:var(--accent2);border-radius:12px;font-size:12px;color:var(--accent)}
+@media(max-width:700px){.container{padding:14px 10px 35px}header,.progress-panel{padding:18px}.step{padding:1px 14px 16px}.two-col{grid-template-columns:1fr}.progress-row{align-items:flex-start;flex-direction:column}.progress-panel{position:static}}
+@media print{body{background:#fff}.container{max-width:none;padding:0}.progress-panel,.progress-actions{display:none!important}header,.step,table,pre,.note,.warning,.danger{break-inside:avoid;box-shadow:none}.step{border:0;padding:0}.step h2{break-before:page}.step-check input,.task-list input{appearance:none;border:1px solid #333;background:#fff;width:14px;height:14px}.step-check{background:#fff}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Guia Passo a Passo — GitHub</h1>
+<p class="cover-meta"><strong>Objetivo:</strong> guardar o código das aplicações da empresa no GitHub com segurança e usar o repositório para publicar nos servidores</p>
+<p class="cover-meta"><strong>Ambiente de referência:</strong> computador Windows (PowerShell), GitHub e servidores Ubuntu Server 26.04 em Proxmox</p>
+<p class="cover-meta"><strong>Perfil:</strong> analista usando Git e GitHub pela primeira vez</p>
+<p class="cover-meta"><strong>Versão do guia:</strong> 1.0 · 26/09/2026</p>
+<div class="warning"><span class="callout-title">Atenção:</span> hoje o código das aplicações existe somente no seu computador. Até terminar a etapa 8, uma falha nesse computador significa perder o código. Faça as etapas 1 a 8 primeiro, para todas as aplicações, antes de se aprofundar no restante.</div>
+</header>
+
+<div class="progress-panel" aria-live="polite">
+  <div class="progress-row"><div><strong>Acompanhamento do aprendizado</strong><div id="progressText" class="small muted">Carregando progresso…</div></div><div class="progress-actions"><span id="progressPercent">0%</span><button type="button" id="resetProgress">Limpar marcações</button></div></div>
+  <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+  <p class="small muted">As marcações são salvas neste navegador e neste perfil de usuário. Use o mesmo arquivo e navegador para continuar. O botão de limpeza apaga somente as marcações locais.</p>
+</div>
+
+<main>
+<section class="step" id="etapa-01">
+<h2>1. Como usar este guia e os conceitos básicos</h2>
+<p>Execute as etapas na ordem. Cada etapa explica o objetivo, apresenta os comandos e diz o que você deve ver como resultado. Marque a caixa da etapa somente depois de confirmar o resultado.</p>
+<p>Os comandos são executados no <strong>PowerShell do seu computador</strong>, salvo quando a etapa indicar <strong>terminal do servidor Linux</strong>. Substitua todos os valores entre sinais de maior/menor, como <code>&lt;SEU_USUARIO&gt;</code>, antes de executar. Não cole os sinais de maior/menor literalmente.</p>
+<h3>Git e GitHub não são a mesma coisa</h3>
+<table><tr><th>Termo</th><th>O que é</th></tr>
+<tr><td><strong>Git</strong></td><td>Programa instalado no seu computador que registra o histórico de alterações dos arquivos de uma pasta.</td></tr>
+<tr><td><strong>GitHub</strong></td><td>Site que guarda uma cópia desse histórico na nuvem. Funciona como backup, permite acessar o código de qualquer lugar e facilita levar o código ao servidor.</td></tr>
+<tr><td><strong>Repositório</strong></td><td>Uma pasta de projeto controlada pelo Git. Use um repositório por aplicação.</td></tr>
+<tr><td><strong>Commit</strong></td><td>Um "ponto de salvamento" com as alterações e uma mensagem explicando o que mudou. Você pode voltar a qualquer commit.</td></tr>
+<tr><td><strong>Push</strong></td><td>Enviar seus commits do computador para o GitHub.</td></tr>
+<tr><td><strong>Pull</strong></td><td>Trazer para o computador (ou servidor) os commits que estão no GitHub.</td></tr>
+<tr><td><strong>Branch</strong></td><td>Uma linha de trabalho paralela. A principal se chama <code>main</code>; outras servem para testar mudanças sem afetar a principal.</td></tr></table>
+<p>Fluxo que você vai montar:</p>
+<pre><code>Seu computador (Windows)
+  │ git commit  → salva a alteração no histórico local
+  │ git push    → envia para o GitHub
+  ▼
+GitHub (repositório privado)
+  │ git pull    → servidor busca a versão nova (somente leitura)
+  ▼
+Servidor Ubuntu (VM de aplicações no Proxmox)</code></pre>
+<div class="note"><strong>Regra para quem está começando:</strong> antes de qualquer <code>git add</code> ou <code>git commit</code>, rode <code>git status</code> e leia a saída. Esse comando nunca altera nada e mostra exatamente o que o Git vai fazer.</div>
+</section>
+
+<section class="step" id="etapa-02">
+<h2>2. Criar a conta no GitHub e ativar a autenticação em dois fatores</h2>
+<ol><li>Acesse <a href="https://github.com/signup" target="_blank" rel="noopener">github.com/signup</a> e crie a conta. Prefira o e-mail corporativo e um nome de usuário profissional (ele aparece nos endereços dos repositórios).</li>
+<li>Confirme o e-mail recebido.</li>
+<li>Ative a autenticação em dois fatores em <strong>Settings → Password and authentication → Two-factor authentication</strong>, usando um aplicativo autenticador no celular.</li>
+<li>Baixe os <strong>códigos de recuperação</strong> e guarde-os no cofre de senhas da empresa. Sem eles, perder o celular pode significar perder o acesso à conta.</li></ol>
+<div class="note"><strong>Conta pessoal ou organização?</strong> Para começar, repositórios privados na sua conta resolvem. Se outras pessoas forem trabalhar no código, ou para que o código pertença à empresa e não a uma pessoa, crie depois uma <em>Organization</em> gratuita no GitHub e transfira os repositórios para ela.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Conta criada e e-mail confirmado.</label></li>
+<li><label><input class="task-check" type="checkbox">Dois fatores ativos e códigos de recuperação guardados no cofre.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-03">
+<h2>3. Instalar o Git no Windows</h2>
+<p>Abra o PowerShell e instale o Git pelo gerenciador de pacotes do Windows:</p>
+<pre><code>winget install --id Git.Git -e --source winget</code></pre>
+<p>Se o <code>winget</code> não existir no seu Windows, baixe o instalador em <a href="https://git-scm.com/download/win" target="_blank" rel="noopener">git-scm.com/download/win</a> e aceite as opções padrão.</p>
+<p><strong>Feche e abra o PowerShell de novo</strong> (o terminal só enxerga programas novos depois de reaberto) e confira:</p>
+<pre><code>git --version</code></pre>
+<p>Resultado esperado: algo como <code>git version 2.x.x.windows.x</code>. Se aparecer "git não é reconhecido", reinicie o computador e teste novamente.</p>
+<div class="note"><strong>Dica:</strong> o Visual Studio Code tem integração visual com o Git (painel de alterações, diferenças coloridas). Vale usar junto, mas aprenda primeiro pelos comandos deste guia: assim você entende o que os botões fazem.</div>
+</section>
+
+<section class="step" id="etapa-04">
+<h2>4. Configurar sua identidade no Git</h2>
+<p>Todo commit registra quem o fez. Configure isso uma única vez no computador:</p>
+<pre><code>git config --global user.name "&lt;Seu Nome Completo&gt;"
+git config --global user.email "&lt;SEU_EMAIL&gt;"
+git config --global init.defaultBranch main
+git config --global core.autocrlf true
+git config --global --list</code></pre>
+<table><tr><th>Configuração</th><th>Para que serve</th></tr>
+<tr><td><code>user.name</code> e <code>user.email</code></td><td>Identificam o autor dos commits. Use o mesmo e-mail cadastrado no GitHub para os commits aparecerem vinculados à sua conta.</td></tr>
+<tr><td><code>init.defaultBranch main</code></td><td>Faz os repositórios novos começarem com a branch <code>main</code>, o mesmo nome padrão do GitHub.</td></tr>
+<tr><td><code>core.autocrlf true</code></td><td>O Windows e o Linux marcam o fim de linha de formas diferentes. Essa opção converte automaticamente e evita arquivos "alterados" sem mudança real.</td></tr></table>
+<div class="note"><strong>Privacidade do e-mail:</strong> se preferir não expor seu e-mail no histórico, o GitHub oferece um endereço do tipo <code>numero+usuario@users.noreply.github.com</code> em <strong>Settings → Emails</strong>. Use esse endereço em <code>user.email</code>.</div>
+</section>
+
+<section class="step" id="etapa-05">
+<h2>5. Criar uma chave SSH e cadastrá-la no GitHub</h2>
+<p>A chave SSH permite que o computador envie código ao GitHub sem digitar senha e sem guardar senha em arquivo. Ela tem duas partes: a <strong>privada</strong> (fica só no seu computador, nunca é enviada) e a <strong>pública</strong> (pode ser cadastrada em serviços).</p>
+<h3>5.1 Gerar a chave</h3>
+<p>Se você já gerou uma chave <code>id_ed25519</code> para acessar os servidores, pode reutilizá-la: pule para 5.2. Caso contrário, no PowerShell:</p>
+<pre><code>ssh-keygen -t ed25519 -C "&lt;SEU_EMAIL&gt;"</code></pre>
+<p>Aceite o local padrão com Enter e defina uma <strong>frase-senha</strong> (passphrase). Ela protege a chave caso alguém copie o arquivo.</p>
+<h3>5.2 Copiar a chave pública</h3>
+<pre><code>Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub | Set-Clipboard</code></pre>
+<p>A linha pública, que começa com <code>ssh-ed25519</code>, foi copiada para a área de transferência.</p>
+<div class="danger"><strong>Nunca copie nem envie o arquivo <code>id_ed25519</code> sem extensão.</strong> Ele é a chave privada. O único arquivo que vai para o GitHub é o <code>.pub</code>.</div>
+<h3>5.3 Cadastrar no GitHub</h3>
+<ol><li>No GitHub, clique na sua foto → <strong>Settings → SSH and GPG keys → New SSH key</strong>.</li>
+<li>Em <em>Title</em>, identifique o equipamento, por exemplo <code>Notebook trabalho</code>.</li>
+<li>Em <em>Key type</em>, mantenha <strong>Authentication Key</strong>, cole a chave em <em>Key</em> e salve.</li></ol>
+<h3>5.4 Testar a conexão</h3>
+<pre><code>ssh -T git@github.com</code></pre>
+<p>Na primeira vez, o SSH pergunta se você confia no servidor e mostra uma impressão digital (fingerprint). Compare com as impressões publicadas na documentação do GitHub (veja as referências) e responda <code>yes</code>. Resultado esperado:</p>
+<pre><code>Hi &lt;SEU_USUARIO&gt;! You've successfully authenticated, but GitHub does not provide shell access.</code></pre>
+<p>Essa mensagem significa sucesso: o GitHub reconheceu a chave. O aviso de que não há "shell access" é normal.</p>
+</section>
+
+<section class="step" id="etapa-06">
+<h2>6. Preparar a pasta do projeto antes do primeiro commit</h2>
+<p>Esta é a etapa mais importante para a segurança. O Git guarda <strong>para sempre</strong> tudo o que entra em um commit. Senhas, chaves e arquivos gerados não podem entrar no repositório.</p>
+<h3>6.1 Criar o arquivo <code>.gitignore</code></h3>
+<p>O <code>.gitignore</code> lista o que o Git deve ignorar. Na pasta raiz do projeto, crie um arquivo chamado exatamente <code>.gitignore</code> com o conteúdo:</p>
+<pre><code># Dependências (são reinstaladas com npm ci)
+node_modules/
+
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# Arquivos enviados pelos usuários e dados locais
+uploads/
+storage/
+
+# Arquivos do sistema operacional
+Thumbs.db
+.DS_Store</code></pre>
+<p>Para criar o arquivo pelo PowerShell com o Bloco de Notas:</p>
+<pre><code>cd &lt;CAMINHO_DA_PASTA_DO_PROJETO&gt;
+notepad .gitignore</code></pre>
+<div class="warning">O Bloco de Notas pode salvar como <code>.gitignore.txt</code>. Confira com <code>Get-ChildItem -Force</code>: o nome deve ser exatamente <code>.gitignore</code>. Se estiver errado, corrija com <code>Rename-Item .gitignore.txt .gitignore</code>.</div>
+<h3>6.2 Criar o <code>.env.example</code></h3>
+<p>Se a aplicação usa um arquivo <code>.env</code> com senha do banco e outras configurações, crie uma cópia chamada <code>.env.example</code> com os <strong>mesmos nomes de variáveis, mas sem os valores reais</strong>. Ele entra no repositório e documenta o que precisa ser configurado no servidor.</p>
+<pre><code># .env.example — valores de exemplo, NUNCA reais
+PORT=3000
+DATABASE_URL=postgres://&lt;usuario&gt;:&lt;senha&gt;@&lt;host&gt;:5432/&lt;banco&gt;
+SESSION_SECRET=&lt;gerar-no-servidor&gt;</code></pre>
+<h3>6.3 Procurar senhas escritas direto no código</h3>
+<p>Procure senhas, tokens ou endereços de banco digitados no código-fonte:</p>
+<pre><code>Get-ChildItem -Recurse -File -Exclude *.png,*.jpg,*.pdf | Where-Object { $_.FullName -notmatch 'node_modules' } | Select-String -Pattern 'password|senha|secret|token|postgres://' | Select-Object Path, LineNumber, Line</code></pre>
+<p>Se encontrar valores reais no código, mova-os para o <code>.env</code> e leia-os com <code>process.env.NOME_DA_VARIAVEL</code> antes de continuar.</p>
+<h3>6.4 Criar um <code>README.md</code></h3>
+<p>Crie um arquivo <code>README.md</code> explicando o que a aplicação faz, como instalar e quais variáveis precisa. No futuro, você (ou um colega) vai agradecer. Um modelo mínimo:</p>
+<pre><code># Nome da aplicação
+
+Para que serve e quem usa.
+
+## Requisitos
+- Node.js &lt;versão&gt;
+- PostgreSQL
+
+## Instalação
+1. npm ci
+2. Copiar .env.example para .env e preencher
+3. npm start</code></pre>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox"><code>.gitignore</code> criado com o nome correto.</label></li>
+<li><label><input class="task-check" type="checkbox"><code>.env.example</code> criado sem valores reais.</label></li>
+<li><label><input class="task-check" type="checkbox">Nenhuma senha escrita diretamente no código.</label></li>
+<li><label><input class="task-check" type="checkbox"><code>README.md</code> criado.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-07">
+<h2>7. Criar o repositório privado no GitHub</h2>
+<ol><li>No GitHub, clique no <strong>+</strong> no canto superior direito → <strong>New repository</strong>.</li>
+<li>Em <em>Repository name</em>, use um nome curto, em minúsculas e com hífens, por exemplo <code>controle-estoque</code>.</li>
+<li>Escreva uma descrição curta.</li>
+<li>Marque <strong>Private</strong>. Repositórios públicos ficam visíveis para qualquer pessoa na internet.</li>
+<li><strong>Não marque</strong> as opções de adicionar README, .gitignore ou licença: você já criou esses arquivos localmente, e criar também no GitHub gera um conflito no primeiro envio.</li>
+<li>Clique em <strong>Create repository</strong>.</li></ol>
+<p>Na página seguinte, clique em <strong>SSH</strong> e copie o endereço, que tem o formato:</p>
+<pre><code>git@github.com:&lt;SEU_USUARIO&gt;/&lt;NOME_DO_REPOSITORIO&gt;.git</code></pre>
+<div class="warning">Confira duas vezes que o repositório está como <strong>Private</strong>. Isso aparece ao lado do nome, no topo da página do repositório.</div>
+</section>
+
+<section class="step" id="etapa-08">
+<h2>8. Fazer o primeiro commit e enviar ao GitHub</h2>
+<p>No PowerShell, dentro da pasta do projeto:</p>
+<pre><code>cd &lt;CAMINHO_DA_PASTA_DO_PROJETO&gt;
+git init
+git status</code></pre>
+<p>O <code>git init</code> transforma a pasta em repositório (cria a pasta oculta <code>.git</code>). O <code>git status</code> lista os arquivos "untracked", ainda não controlados.</p>
+<h3>8.1 Conferir o que será incluído</h3>
+<pre><code>git add .
+git status</code></pre>
+<p>O <code>git add .</code> prepara todos os arquivos (exceto os ignorados) para o commit. <strong>Leia a lista com atenção.</strong> Não podem aparecer <code>node_modules</code>, <code>.env</code> ou arquivos de upload. Para confirmar que o <code>.env</code> está sendo ignorado:</p>
+<pre><code>git check-ignore -v .env</code></pre>
+<p>Resultado esperado: a linha do <code>.gitignore</code> que ignora o arquivo. Se não mostrar nada e o <code>.env</code> aparecer no <code>git status</code>, pare, corrija o <code>.gitignore</code> e execute <code>git rm --cached .env</code> antes de continuar.</p>
+<h3>8.2 Criar o commit e enviar</h3>
+<pre><code>git commit -m "Versão inicial da aplicação"
+git remote add origin git@github.com:&lt;SEU_USUARIO&gt;/&lt;NOME_DO_REPOSITORIO&gt;.git
+git push -u origin main</code></pre>
+<table><tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>git commit -m "..."</code></td><td>Cria o ponto de salvamento local com a mensagem informada.</td></tr>
+<tr><td><code>git remote add origin ...</code></td><td>Liga a pasta local ao repositório do GitHub. <code>origin</code> é o apelido padrão desse endereço.</td></tr>
+<tr><td><code>git push -u origin main</code></td><td>Envia a branch <code>main</code>. O <code>-u</code> memoriza o destino: nas próximas vezes basta <code>git push</code>.</td></tr></table>
+<p><strong>Validação:</strong> atualize a página do repositório no navegador. Os arquivos devem aparecer e o <code>README.md</code> é exibido abaixo deles. Confirme visualmente que não há <code>.env</code> nem <code>node_modules</code>.</p>
+<div class="note">Repita as etapas 6, 7 e 8 para cada aplicação. Ao final, todo o código estará com cópia fora do seu computador.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Aplicação 1 enviada ao GitHub e conferida.</label></li>
+<li><label><input class="task-check" type="checkbox">Aplicação 2 enviada ao GitHub e conferida.</label></li>
+<li><label><input class="task-check" type="checkbox">Aplicação 3 enviada ao GitHub e conferida.</label></li>
+<li><label><input class="task-check" type="checkbox">Aplicação 4 enviada ao GitHub e conferida.</label></li>
+<li><label><input class="task-check" type="checkbox">Aplicação 5 enviada ao GitHub e conferida.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-09">
+<h2>9. O ciclo do dia a dia: alterar, salvar e enviar</h2>
+<p>Depois do primeiro envio, o trabalho segue sempre o mesmo ciclo. Pratique com uma alteração pequena, como uma linha no <code>README.md</code>:</p>
+<pre><code>git pull                # 1. traz alterações feitas em outro lugar (bom hábito)
+# 2. edite os arquivos normalmente no editor
+git status              # 3. quais arquivos mudaram?
+git diff                # 4. quais linhas mudaram? (tecla q para sair)
+git add .               # 5. prepara as alterações
+git commit -m "Adiciona filtro por data na tela de pedidos"
+git push                # 6. envia ao GitHub</code></pre>
+<h3>Como escrever boas mensagens de commit</h3>
+<p>A mensagem é o que você vai ler meses depois para descobrir quando e por que algo mudou. Descreva <strong>o que</strong> a alteração faz, no presente, em uma frase.</p>
+<div class="two-col">
+<div class="note"><strong>Boas</strong><br><code>Corrige cálculo de total com desconto</code><br><code>Adiciona exportação de pedidos em CSV</code><br><code>Aumenta limite de upload para 20 MB</code></div>
+<div class="warning"><strong>Ruins</strong><br><code>ajustes</code><br><code>teste</code><br><code>agora vai</code></div>
+</div>
+<p>Faça commits pequenos e frequentes, um para cada assunto. É mais fácil entender e desfazer uma mudança pequena do que um commit com o trabalho da semana inteira.</p>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Fiz uma alteração, um commit e um push, e vi a mudança no GitHub.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-10">
+<h2>10. Consultar o histórico e desfazer alterações</h2>
+<h3>10.1 Ver o histórico</h3>
+<pre><code>git log --oneline -n 20</code></pre>
+<p>Cada linha mostra um código curto (o <em>hash</em>, como <code>a1b2c3d</code>) e a mensagem do commit. No GitHub, o mesmo histórico aparece em <strong>Commits</strong>, na página do repositório.</p>
+<h3>10.2 Qual comando usar para desfazer</h3>
+<table><tr><th>Situação</th><th>Comando</th><th>Efeito</th></tr>
+<tr><td>Alterei um arquivo, ainda não fiz <code>git add</code>, e quero voltar ao último commit</td><td><code>git restore &lt;arquivo&gt;</code></td><td>Descarta as alterações desse arquivo. <strong>Não tem volta.</strong></td></tr>
+<tr><td>Fiz <code>git add</code> de um arquivo por engano</td><td><code>git restore --staged &lt;arquivo&gt;</code></td><td>Tira o arquivo da preparação, mantendo suas alterações.</td></tr>
+<tr><td>Errei a mensagem do último commit e ainda não fiz push</td><td><code>git commit --amend -m "Nova mensagem"</code></td><td>Reescreve a mensagem do último commit.</td></tr>
+<tr><td>Um commit já enviado causou problema</td><td><code>git revert &lt;hash&gt;</code> e depois <code>git push</code></td><td>Cria um novo commit que desfaz aquele. O histórico fica preservado.</td></tr></table>
+<div class="danger"><strong>Evite enquanto está aprendendo:</strong> <code>git reset --hard</code> e <code>git push --force</code>. Eles apagam trabalho e reescrevem o histórico do GitHub. Quase sempre existe uma alternativa segura, como o <code>git revert</code>.</div>
+</section>
+
+<section class="step" id="etapa-11">
+<h2>11. Trabalhar com branches e Pull Requests</h2>
+<p>Quando a mudança for maior ou arriscada, trabalhe em uma branch separada. A <code>main</code> continua sendo a versão estável, que é a que vai para o servidor.</p>
+<h3>11.1 Criar a branch e trabalhar nela</h3>
+<pre><code>git switch main
+git pull
+git switch -c relatorio-mensal
+# edite, depois:
+git add .
+git commit -m "Cria relatório mensal de vendas"
+git push -u origin relatorio-mensal</code></pre>
+<h3>11.2 Abrir e concluir o Pull Request</h3>
+<ol><li>No GitHub, aparece o botão <strong>Compare &amp; pull request</strong>. Clique nele.</li>
+<li>Descreva o que mudou e como testou. Clique em <strong>Create pull request</strong>.</li>
+<li>Na aba <strong>Files changed</strong>, revise as diferenças linha a linha. É uma ótima hora para encontrar erros.</li>
+<li>Estando tudo certo, clique em <strong>Merge pull request</strong> e confirme. As alterações entram na <code>main</code>.</li>
+<li>Clique em <strong>Delete branch</strong> para apagar a branch no GitHub.</li></ol>
+<h3>11.3 Voltar para a main no computador</h3>
+<pre><code>git switch main
+git pull
+git branch -d relatorio-mensal</code></pre>
+<div class="note">Trabalhando sozinho, o Pull Request parece burocracia, mas ele cria o hábito de revisar antes de publicar e deixa registrado no GitHub o motivo de cada mudança. Para ajustes pequenos, commitar direto na <code>main</code> é aceitável.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Criei uma branch, abri um Pull Request, fiz o merge e voltei para a main.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-12">
+<h2>12. Resolver um conflito</h2>
+<p>Um conflito acontece quando a mesma linha foi alterada em dois lugares (por exemplo, editada no GitHub e no computador). O Git não escolhe sozinho e pede sua decisão. Quando ocorrer em um <code>git pull</code> ou merge, o arquivo fica assim:</p>
+<pre><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+const limite = 20;
+=======
+const limite = 50;
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; origin/main</code></pre>
+<ol><li>Abra o arquivo, decida qual versão fica (ou combine as duas) e apague as linhas de marcação <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code> e <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>.</li>
+<li>Salve, teste a aplicação e finalize:</li></ol>
+<pre><code>git status
+git add &lt;arquivo&gt;
+git commit -m "Resolve conflito no limite de itens"
+git push</code></pre>
+<p>Se ficar confuso e quiser voltar ao estado anterior ao merge, use <code>git merge --abort</code>. Nada é perdido.</p>
+</section>
+
+<section class="step" id="etapa-13">
+<h2>13. Criar uma chave de implantação (deploy key) no servidor</h2>
+<p><strong>Terminal do servidor Linux.</strong> O servidor precisa baixar o código, mas não deve usar a sua chave pessoal: se o servidor fosse comprometido, a sua conta inteira ficaria exposta. A solução é uma <em>deploy key</em>: uma chave que dá acesso <strong>somente de leitura a um único repositório</strong>.</p>
+<p>Execute como o usuário que fará as atualizações da aplicação no servidor. O exemplo usa a aplicação <code>controle-estoque</code>; repita para cada aplicação trocando o nome.</p>
+<h3>13.1 Gerar a chave no servidor</h3>
+<pre><code>git --version || sudo apt install -y git
+mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh
+ssh-keygen -t ed25519 -f ~/.ssh/github_controle-estoque -N "" -C "deploy controle-estoque"
+cat ~/.ssh/github_controle-estoque.pub</code></pre>
+<p>A opção <code>-N ""</code> cria a chave sem frase-senha, para que o servidor consiga usá-la sem ninguém digitar nada. Por isso ela deve ter permissão apenas de leitura.</p>
+<h3>13.2 Cadastrar no repositório</h3>
+<ol><li>No GitHub, abra o repositório → <strong>Settings → Deploy keys → Add deploy key</strong>.</li>
+<li>Em <em>Title</em>, use o nome do servidor, por exemplo <code>vm-aplicacoes</code>. Cole a linha exibida pelo <code>cat</code>.</li>
+<li><strong>Não marque</strong> <em>Allow write access</em>. Salve.</li></ol>
+<h3>13.3 Criar um apelido para a chave</h3>
+<p>O GitHub não permite usar a mesma deploy key em dois repositórios. Com várias aplicações no mesmo servidor, cada uma tem sua chave, e um apelido no arquivo de configuração do SSH indica qual chave usar:</p>
+<pre><code>nano ~/.ssh/config</code></pre>
+<pre><code>Host github-controle-estoque
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/github_controle-estoque
+    IdentitiesOnly yes</code></pre>
+<pre><code>chmod 600 ~/.ssh/config
+ssh -T git@github-controle-estoque</code></pre>
+<p>Confira a impressão digital como na etapa 5.4 e responda <code>yes</code>. Resultado esperado: <code>Hi &lt;SEU_USUARIO&gt;/controle-estoque! You've successfully authenticated...</code> — o nome do repositório na mensagem confirma que é a deploy key.</p>
+</section>
+
+<section class="step" id="etapa-14">
+<h2>14. Baixar a aplicação no servidor pela primeira vez</h2>
+<p><strong>Terminal do servidor Linux.</strong> Clone usando o apelido criado, no lugar de <code>github.com</code>:</p>
+<pre><code>sudo mkdir -p /srv/apps
+sudo chown $USER:$USER /srv/apps
+cd /srv/apps
+git clone git@github-controle-estoque:&lt;SEU_USUARIO&gt;/controle-estoque.git
+cd controle-estoque
+git log --oneline -n 3</code></pre>
+<p>O último commit exibido deve ser o mesmo que aparece no GitHub.</p>
+<h3>14.1 Criar o <code>.env</code> no servidor</h3>
+<p>O <code>.env</code> não veio com o código, e é assim que deve ser. Crie-o no servidor a partir do exemplo e preencha com os valores reais de produção:</p>
+<pre><code>cp .env.example .env
+nano .env
+chmod 600 .env</code></pre>
+<p>Depois instale as dependências e inicie a aplicação conforme a configuração do servidor (PM2 ou serviço systemd):</p>
+<pre><code>npm ci --omit=dev</code></pre>
+<div class="note">O <code>npm ci</code> instala exatamente as versões registradas no <code>package-lock.json</code>. Por isso esse arquivo <strong>deve</strong> estar no repositório. Se ele não existir, rode <code>npm install</code> no seu computador, faça commit do <code>package-lock.json</code> gerado e envie.</div>
+</section>
+
+<section class="step" id="etapa-15">
+<h2>15. Atualizar a aplicação no servidor</h2>
+<p>A partir de agora, publicar uma nova versão é: fazer <code>git push</code> no seu computador e, no servidor, buscar a versão nova.</p>
+<pre><code>cd /srv/apps/controle-estoque
+git status                    # deve dizer "nothing to commit, working tree clean"
+git pull --ff-only
+npm ci --omit=dev
+# reinicie a aplicação conforme a configuração do servidor, por exemplo:
+pm2 restart controle-estoque  # ou: sudo systemctl restart controle-estoque
+git log --oneline -n 1</code></pre>
+<p>O <code>--ff-only</code> garante que o servidor apenas avance para a versão do GitHub. Se alguém tiver editado arquivos direto no servidor, o comando para com erro em vez de misturar alterações, e você pode investigar com <code>git status</code>.</p>
+<div class="warning"><strong>Nunca edite código direto no servidor.</strong> Toda alteração nasce no seu computador, passa por commit e push, e só então chega ao servidor com <code>git pull</code>. Assim o GitHub é sempre a fonte da verdade.</div>
+<h3>Voltar para a versão anterior se a atualização der problema</h3>
+<p>A forma segura é desfazer no computador com <code>git revert &lt;hash&gt;</code> (etapa 10), enviar e repetir o <code>git pull</code> no servidor. Se a aplicação alterou o banco de dados, avalie também a restauração do banco antes.</p>
+</section>
+
+<section class="step" id="etapa-16">
+<h2>16. Se uma senha ou chave for enviada ao GitHub por engano</h2>
+<p>Mesmo em repositório privado, trate o segredo como vazado. Apagar o arquivo em um commit novo não resolve: o valor continua no histórico.</p>
+<ol><li><strong>Primeiro, troque o segredo</strong>: altere a senha do banco, gere um novo token ou nova chave. Essa é a única medida que realmente elimina o risco.</li>
+<li>Atualize o valor novo no <code>.env</code> do servidor e reinicie a aplicação.</li>
+<li>Pare de rastrear o arquivo e garanta que ele está no <code>.gitignore</code>:</li></ol>
+<pre><code>git rm --cached .env
+git commit -m "Remove .env do controle de versão"
+git push</code></pre>
+<div class="note">O GitHub tem proteção contra envio de segredos conhecidos (<em>push protection</em> e <em>secret scanning</em>) e pode bloquear o push ou alertar você. Se receber esse aviso, não contorne o bloqueio: remova o segredo do código e troque o valor.</div>
+</section>
+
+<section class="step" id="etapa-17">
+<h2>17. Diagnóstico rápido quando um comando falhar</h2>
+<table><tr><th>Mensagem ou sintoma</th><th>Causa provável</th><th>O que fazer</th></tr>
+<tr><td><code>Permission denied (publickey)</code></td><td>Chave não cadastrada, chave errada ou endereço HTTPS no lugar de SSH.</td><td>Teste <code>ssh -T git@github.com</code> (ou o apelido no servidor). Confira o endereço com <code>git remote -v</code>.</td></tr>
+<tr><td><code>Repository not found</code></td><td>Nome do repositório errado ou a chave não tem acesso a ele.</td><td>Confira usuário e nome em <code>git remote -v</code>. No servidor, confira a deploy key do repositório.</td></tr>
+<tr><td><code>! [rejected] ... (fetch first)</code> no push</td><td>O GitHub tem commits que você ainda não tem.</td><td>Rode <code>git pull</code>, resolva conflitos se houver, e depois <code>git push</code>.</td></tr>
+<tr><td><code>fatal: not a git repository</code></td><td>Você está fora da pasta do projeto.</td><td>Use <code>cd</code> até a pasta do projeto e confira com <code>Get-Location</code> (Windows) ou <code>pwd</code> (Linux).</td></tr>
+<tr><td><code>.env</code> ou <code>node_modules</code> aparecem no <code>git status</code></td><td><code>.gitignore</code> ausente, com nome errado ou arquivo já rastreado.</td><td>Corrija o <code>.gitignore</code> e rode <code>git rm -r --cached node_modules</code> ou <code>git rm --cached .env</code>.</td></tr>
+<tr><td><code>Not possible to fast-forward</code> no servidor</td><td>Arquivos foram alterados direto no servidor.</td><td>Veja com <code>git status</code> e <code>git diff</code>. Leve a alteração útil para o computador; depois descarte no servidor com <code>git restore .</code>.</td></tr>
+<tr><td>Aviso <code>LF will be replaced by CRLF</code></td><td>Conversão de fim de linha entre Windows e Linux.</td><td>É normal com <code>core.autocrlf true</code>. Pode ignorar.</td></tr>
+<tr><td>Commits aparecem sem sua foto no GitHub</td><td><code>user.email</code> diferente do cadastrado no GitHub.</td><td>Ajuste com <code>git config --global user.email</code>; vale para os próximos commits.</td></tr></table>
+<p>Quando estiver em dúvida, estes comandos só consultam e nunca alteram nada:</p>
+<pre><code>git status
+git remote -v
+git log --oneline -n 10
+git branch -a</code></pre>
+</section>
+
+<section class="step" id="etapa-18">
+<h2>18. Checklist final</h2>
+<p>Marque cada item depois de conferir. Com tudo marcado, o código está protegido e o caminho de publicação está pronto.</p>
+<h3>Conta e computador</h3><ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Conta GitHub com dois fatores e códigos de recuperação guardados.</label></li>
+<li><label><input class="task-check" type="checkbox">Git instalado e identidade configurada.</label></li>
+<li><label><input class="task-check" type="checkbox">Chave SSH do computador com frase-senha, testada com <code>ssh -T git@github.com</code>.</label></li></ul>
+<h3>Repositórios</h3><ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Um repositório privado por aplicação.</label></li>
+<li><label><input class="task-check" type="checkbox">Todos com <code>.gitignore</code>, <code>.env.example</code>, <code>README.md</code> e <code>package-lock.json</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">Nenhum <code>.env</code>, senha ou <code>node_modules</code> no GitHub.</label></li></ul>
+<h3>Servidor</h3><ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Uma deploy key somente leitura por repositório.</label></li>
+<li><label><input class="task-check" type="checkbox">Aplicações clonadas em <code>/srv/apps</code> com <code>.env</code> criado no servidor (modo 600).</label></li>
+<li><label><input class="task-check" type="checkbox">Atualização testada com <code>git pull --ff-only</code>, <code>npm ci</code> e reinício da aplicação.</label></li></ul>
+<div class="note">Próximo passo natural, quando estiver confortável: automatizar a atualização do servidor com GitHub Actions. Não faça isso antes de dominar o processo manual deste guia.</div>
+</section>
+
+<section class="step" id="etapa-19">
+<h2>19. Referências oficiais</h2>
+<ul>
+<li><a href="https://git-scm.com/book/pt-br/v2" target="_blank" rel="noopener">Pro Git — livro oficial e gratuito do Git, em português</a>.</li>
+<li><a href="https://docs.github.com/pt/get-started" target="_blank" rel="noopener">GitHub Docs — introdução ao GitHub</a>.</li>
+<li><a href="https://docs.github.com/pt/authentication/securing-your-account-with-two-factor-authentication-2fa" target="_blank" rel="noopener">GitHub Docs — autenticação em dois fatores</a>.</li>
+<li><a href="https://docs.github.com/pt/authentication/connecting-to-github-with-ssh" target="_blank" rel="noopener">GitHub Docs — conectar ao GitHub com SSH</a>.</li>
+<li><a href="https://docs.github.com/pt/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints" target="_blank" rel="noopener">GitHub Docs — impressões digitais das chaves SSH do GitHub</a>.</li>
+<li><a href="https://docs.github.com/pt/authentication/connecting-to-github-with-ssh/managing-deploy-keys" target="_blank" rel="noopener">GitHub Docs — deploy keys</a>.</li>
+<li><a href="https://docs.github.com/pt/pull-requests" target="_blank" rel="noopener">GitHub Docs — Pull Requests</a>.</li>
+<li><a href="https://docs.github.com/pt/code-security/secret-scanning" target="_blank" rel="noopener">GitHub Docs — varredura de segredos</a>.</li>
+<li><a href="https://github.com/github/gitignore/blob/main/Node.gitignore" target="_blank" rel="noopener">Modelo oficial de .gitignore para Node.js</a>.</li>
+</ul>
+<p>Os endereços e os nomes dos menus do GitHub podem mudar com o tempo. Se um link não abrir ou um botão estiver em outro lugar, procure pelo assunto em <a href="https://docs.github.com/pt" target="_blank" rel="noopener">docs.github.com</a>.</p>
+</section>
+</main>
+
+<footer>
+<p><strong>Documento:</strong> Guia Passo a Passo — GitHub para as aplicações da empresa</p>
+<p><strong>Ambiente:</strong> Windows / Git / GitHub / Ubuntu Server 26.04 / Proxmox</p>
+<p>As marcações interativas ficam no armazenamento local do navegador; não são enviadas ao servidor nem incluídas ao imprimir.</p>
+</footer>
+</div>
+<script>
+(function(){
+  const storageKey='empresa.guia.github.passo-a-passo.v1';
+  const checks=Array.from(document.querySelectorAll('input.task-check'));
+  document.querySelectorAll('section.step').forEach(function(section,index){
+    const heading=section.querySelector('h2');
+    const label=document.createElement('label');
+    label.className='step-check';
+    label.innerHTML='<input type="checkbox" class="task-check section-task" aria-label="Marcar etapa concluída"><span>Marcar esta etapa como concluída</span>';
+    heading.insertAdjacentElement('afterend',label);
+  });
+  const allChecks=Array.from(document.querySelectorAll('input.task-check'));
+  allChecks.forEach(function(box,index){if(!box.id)box.id='check-'+(index+1);});
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')||{};}catch(_error){saved={};}
+  allChecks.forEach(function(box){box.checked=saved[box.id]===true;box.addEventListener('change',update);});
+  function update(){
+    const state={};
+    allChecks.forEach(function(box){state[box.id]=box.checked;});
+    try{localStorage.setItem(storageKey,JSON.stringify(state));}catch(_error){}
+    const done=allChecks.filter(function(box){return box.checked;}).length;
+    const percent=allChecks.length?Math.round(done/allChecks.length*100):0;
+    document.getElementById('progressFill').style.width=percent+'%';
+    document.getElementById('progressText').textContent=done+' de '+allChecks.length+' marcações concluídas';
+    document.getElementById('progressPercent').textContent=percent+'%';
+    document.querySelectorAll('section.step').forEach(function(section){
+      const sectionBox=section.querySelector('.section-task');
+      section.classList.toggle('done',!!sectionBox&&sectionBox.checked);
+    });
+  }
+  document.getElementById('resetProgress').addEventListener('click',function(){
+    if(!window.confirm('Apagar todas as marcações salvas neste navegador?'))return;
+    allChecks.forEach(function(box){box.checked=false;});
+    try{localStorage.removeItem(storageKey);}catch(_error){}
+    update();
+  });
+  update();
+})();
+</script>
+</body>
+</html>

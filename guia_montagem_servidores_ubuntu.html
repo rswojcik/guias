@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia Passo a Passo — Montagem dos servidores Ubuntu</title>
+<style>
+:root{--bg:#f5f7fa;--card:#fff;--text:#202733;--muted:#5d6878;--border:#dfe4ea;--accent:#1f5f99;--accent2:#eaf3fb;--code:#1e2430;--ok:#137547;--warn:#8a5a00;--bad:#9f2d2d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.6}.container{max-width:1100px;margin:0 auto;padding:32px 22px 60px}header,.progress-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px 32px;margin-bottom:20px}h1{margin:0 0 10px;font-size:30px}h2{margin:42px 0 8px;padding-bottom:8px;border-bottom:2px solid var(--border);color:var(--accent)}h3{color:#34465a;margin-top:28px}p{margin:10px 0}table{width:100%;border-collapse:collapse;margin:18px 0;background:var(--card)}th,td{border:1px solid var(--border);padding:9px 11px;text-align:left;vertical-align:top}th{background:var(--accent2)}pre{background:var(--code);color:#f4f7fb;padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5}code{font-family:Consolas,Monaco,monospace}.note,.warning,.danger{padding:14px 17px;border-radius:8px;margin:16px 0}.note{background:#eef6ff;border-left:4px solid var(--accent)}.warning{background:#fff7e8;border-left:4px solid #c88919}.danger{background:#fff0f0;border-left:4px solid var(--bad)}.cover-meta{color:var(--muted)}.step{padding:1px 20px 20px;margin:18px 0;background:var(--card);border:1px solid var(--border);border-radius:12px}.step h2{margin-top:26px}.step-check{display:flex;align-items:center;gap:9px;margin:12px 0 18px;padding:10px 12px;border-radius:7px;background:#f2f6fa;color:#34465a;font-weight:700}.step-check input,.task-check{width:18px;height:18px;accent-color:var(--ok);flex:none}.task-list{list-style:none;padding:0}.task-list li{margin:7px 0}.task-list label{display:flex;align-items:flex-start;gap:9px}.task-list input{margin-top:4px}.progress-panel{position:sticky;top:8px;z-index:5;box-shadow:0 4px 14px #1c2d4012;padding:14px 20px}.progress-row{display:flex;justify-content:space-between;align-items:center;gap:16px}.progress-track{height:12px;background:#e8edf2;border-radius:10px;overflow:hidden;margin-top:10px}.progress-fill{height:100%;width:0;background:var(--ok);transition:width .2s}.progress-actions{display:flex;align-items:center;gap:12px}.progress-actions button{border:1px solid var(--border);background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer;color:var(--text)}.callout-title{font-weight:700}.muted{color:var(--muted)}.done{color:var(--ok)}footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}a{color:#155b91}li{margin:5px 0}.small{font-size:13px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pill{display:inline-block;padding:2px 8px;background:var(--accent2);border-radius:12px;font-size:12px;color:var(--accent)}
+@media(max-width:700px){.container{padding:14px 10px 35px}header,.progress-panel{padding:18px}.step{padding:1px 14px 16px}.two-col{grid-template-columns:1fr}.progress-row{align-items:flex-start;flex-direction:column}.progress-panel{position:static}}
+@media print{body{background:#fff}.container{max-width:none;padding:0}.progress-panel,.progress-actions{display:none!important}header,.step,table,pre,.note,.warning,.danger{break-inside:avoid;box-shadow:none}.step{border:0;padding:0}.step h2{break-before:page}.step-check input,.task-list input{appearance:none;border:1px solid #333;background:#fff;width:14px;height:14px}.step-check{background:#fff}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Guia Passo a Passo — Montagem dos Servidores</h1>
+<p class="cover-meta"><strong>Objetivo:</strong> montar a infraestrutura que hospeda as aplicações Node.js e HTML/JS da empresa, todas com PostgreSQL</p>
+<p class="cover-meta"><strong>Ambiente de referência:</strong> Proxmox, duas VMs Ubuntu Server 26.04 LTS (vm-apps e vm-banco), Nginx, Node.js 24 LTS, PM2, PostgreSQL e Certbot</p>
+<p class="cover-meta"><strong>Perfil:</strong> analista montando servidores Linux pela primeira vez</p>
+<p class="cover-meta"><strong>Pré-requisito:</strong> guia do GitHub concluído até a etapa 8 (código das aplicações no GitHub)</p>
+<p class="cover-meta"><strong>Versão do guia:</strong> 1.0 · 26/09/2026</p>
+<div class="warning"><span class="callout-title">Atenção:</span> as etapas 1 a 8 valem para as <strong>duas VMs</strong> e devem ser feitas em cada uma. As etapas 9 a 13 são só da <strong>vm-banco</strong>, e as etapas 14 a 25 são só da <strong>vm-apps</strong>. Cada etapa começa com uma etiqueta dizendo onde executar. Monte a vm-banco antes da vm-apps: as aplicações precisam do banco pronto para iniciar.</div>
+</header>
+
+<div class="progress-panel" aria-live="polite">
+  <div class="progress-row"><div><strong>Acompanhamento da montagem</strong><div id="progressText" class="small muted">Carregando progresso…</div></div><div class="progress-actions"><span id="progressPercent">0%</span><button type="button" id="resetProgress">Limpar marcações</button></div></div>
+  <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+  <p class="small muted">As marcações são salvas neste navegador e neste perfil de usuário. Use o mesmo arquivo e navegador para continuar. O botão de limpeza apaga somente as marcações locais.</p>
+</div>
+
+<main>
+<section class="step" id="etapa-01">
+<h2>1. Como usar este guia e o que será montado</h2>
+<p>Execute as etapas na ordem. Cada etapa explica o objetivo, apresenta os comandos, diz o que você deve ver e termina com uma validação. Marque a caixa da etapa somente depois de confirmar o resultado.</p>
+<p>Os comandos são executados no <strong>terminal do servidor Linux</strong> (via SSH ou console do Proxmox), salvo quando indicarem <strong>PowerShell do seu computador</strong>. Substitua todos os valores entre sinais de maior/menor, como <code>&lt;IP_VM_BANCO&gt;</code>, antes de executar. Não cole os sinais de maior/menor literalmente.</p>
+<p>Arquitetura final:</p>
+<pre><code>Internet                          Rede interna da empresa
+   │ HTTPS (443) / HTTP (80)            │
+   ▼                                    ▼
+Roteador ── encaminha 80 e 443 ──► vm-apps  (&lt;IP_VM_APPS&gt;)
+                                   ├── Nginx: recebe tudo, cuida do HTTPS
+                                   │     ├── estoque.&lt;DOMINIO&gt; → 127.0.0.1:3001 (Node.js via PM2)
+                                   │     └── portal.&lt;DOMINIO&gt;  → /srv/apps/portal (HTML/JS estático)
+                                   └── usuário "apps" executa as aplicações
+                                          │ PostgreSQL 5432 (cifrado, só deste IP)
+                                          ▼
+                                   vm-banco (&lt;IP_VM_BANCO&gt;)
+                                   ├── PostgreSQL: um banco e um usuário por aplicação
+                                   └── pg_dump diário em /var/backups/postgresql
+
+Proxmox Backup Server ── backup das duas VMs inteiras</code></pre>
+<p>Ao longo do guia, duas aplicações de exemplo mostram cada tipo:</p>
+<table><tr><th>Exemplo</th><th>Tipo</th><th>Banco / usuário</th><th>Porta interna</th><th>Endereço público</th></tr>
+<tr><td><code>estoque</code></td><td>Node.js (tem backend)</td><td><code>estoque_db</code> / <code>estoque_user</code></td><td>3001</td><td><code>estoque.&lt;DOMINIO&gt;</code></td></tr>
+<tr><td><code>portal</code></td><td>HTML/JS estático</td><td>nenhum</td><td>nenhuma</td><td><code>portal.&lt;DOMINIO&gt;</code></td></tr></table>
+<p>Troque esses nomes pelos das suas aplicações. A etapa 23 mostra a receita para adicionar cada nova aplicação.</p>
+<div class="note"><strong>Regra para quem está começando:</strong> copie um bloco de cada vez, leia a saída e valide antes de avançar. Se algo der diferente do esperado, pare e consulte a etapa 26 (diagnóstico) antes de tentar outra coisa.</div>
+</section>
+
+<section class="step" id="etapa-02">
+<h2>2. Reúna os dados antes de começar</h2>
+<p>Preencha esta tabela antes de criar as VMs. Os valores de exemplo supõem uma rede <code>192.168.1.0/24</code>; use os da sua rede. Guarde senhas no cofre de senhas da empresa, nunca neste arquivo.</p>
+<table><tr><th>Marcador no guia</th><th>Exemplo</th><th>Como descobrir / decidir</th></tr>
+<tr><td><code>&lt;IP_VM_APPS&gt;</code></td><td><code>192.168.1.20</code></td><td>IP livre e fora da faixa do DHCP do roteador. Confirme com quem administra a rede.</td></tr>
+<tr><td><code>&lt;IP_VM_BANCO&gt;</code></td><td><code>192.168.1.21</code></td><td>Outro IP livre fora da faixa do DHCP.</td></tr>
+<tr><td><code>&lt;PREFIXO&gt;</code></td><td><code>24</code></td><td>Tamanho da rede. Máscara 255.255.255.0 equivale a 24.</td></tr>
+<tr><td><code>&lt;GATEWAY&gt;</code></td><td><code>192.168.1.1</code></td><td>Normalmente o IP do roteador. No Windows: <code>ipconfig</code>, campo "Gateway Padrão".</td></tr>
+<tr><td><code>&lt;DNS&gt;</code></td><td><code>192.168.1.1</code></td><td>Servidor DNS da rede. Pode usar também <code>1.1.1.1</code> como secundário.</td></tr>
+<tr><td><code>&lt;REDE_INTERNA&gt;</code></td><td><code>192.168.1.0/24</code></td><td>Rede de onde você vai administrar os servidores. Somente ela terá acesso SSH.</td></tr>
+<tr><td><code>&lt;DOMINIO&gt;</code></td><td><code>suaempresa.com.br</code></td><td>Domínio da empresa. Você precisa de acesso ao painel de DNS dele.</td></tr>
+<tr><td>IP público</td><td><code>200.x.x.x</code></td><td>Precisa ser <strong>fixo</strong>. Confirme com o provedor de internet; se for dinâmico, veja a etapa 21.</td></tr>
+<tr><td><code>&lt;SEU_USUARIO&gt;</code></td><td><code>joao.silva</code></td><td>Seu usuário administrativo nas VMs. Individual, nunca compartilhado.</td></tr>
+<tr><td>Usuário do GitHub</td><td><code>&lt;USUARIO_GITHUB&gt;</code></td><td>Usado para importar sua chave SSH e clonar os repositórios.</td></tr></table>
+<h3>Plano das aplicações</h3>
+<p>Monte uma lista com cada aplicação. Cada aplicação Node.js recebe uma porta interna única, a partir de 3001:</p>
+<table><tr><th>Aplicação</th><th>Tipo</th><th>Repositório GitHub</th><th>Porta</th><th>Subdomínio</th><th>Banco</th></tr>
+<tr><td>estoque</td><td>Node.js</td><td><code>&lt;USUARIO_GITHUB&gt;/estoque</code></td><td>3001</td><td>estoque</td><td>estoque_db</td></tr>
+<tr><td>portal</td><td>Estático</td><td><code>&lt;USUARIO_GITHUB&gt;/portal</code></td><td>—</td><td>portal</td><td>—</td></tr>
+<tr><td>&lt;app 3&gt;</td><td></td><td></td><td>3002</td><td></td><td></td></tr>
+<tr><td>&lt;app 4&gt;</td><td></td><td></td><td>3003</td><td></td><td></td></tr>
+<tr><td>&lt;app 5&gt;</td><td></td><td></td><td>3004</td><td></td><td></td></tr></table>
+<div class="warning"><strong>Aplicação "HTML e JS" que usa PostgreSQL:</strong> um arquivo HTML/JS que roda no navegador não consegue (e não deve) falar direto com o banco, porque a senha ficaria visível para qualquer usuário. Se uma aplicação sua é HTML/JS e usa o banco, ela tem um backend (normalmente Node.js) em algum lugar. Trate essa aplicação como Node.js neste guia. Só é "estática" a aplicação que não tem nenhum servidor próprio.</div>
+</section>
+
+<section class="step" id="etapa-03">
+<h2>3. Criar as duas VMs no Proxmox</h2>
+<p><span class="pill">Executar em: interface web do Proxmox</span></p>
+<p>Primeiro, envie a ISO do Ubuntu Server 26.04 para o Proxmox: selecione o armazenamento de ISOs (por exemplo <code>local</code>) → <strong>ISO Images → Upload</strong> ou <strong>Download from URL</strong>, com o endereço oficial em <a href="https://ubuntu.com/download/server" target="_blank" rel="noopener">ubuntu.com/download/server</a>.</p>
+<p>Depois, clique em <strong>Create VM</strong> e use estes valores. Repita para as duas VMs:</p>
+<table><tr><th>Aba</th><th>Campo</th><th>vm-apps</th><th>vm-banco</th></tr>
+<tr><td>General</td><td>Name</td><td><code>vm-apps</code></td><td><code>vm-banco</code></td></tr>
+<tr><td>General</td><td>Start at boot</td><td>Marcado</td><td>Marcado</td></tr>
+<tr><td>OS</td><td>ISO / Guest OS</td><td colspan="2">ISO do Ubuntu Server 26.04 / Linux, kernel 6.x</td></tr>
+<tr><td>System</td><td>Machine / SCSI Controller</td><td colspan="2"><code>q35</code> / <code>VirtIO SCSI single</code></td></tr>
+<tr><td>System</td><td>Qemu Agent</td><td colspan="2"><strong>Marcado</strong> (permite ao Proxmox desligar a VM corretamente e ver o IP dela)</td></tr>
+<tr><td>Disks</td><td>Bus / Tamanho</td><td>SCSI / 40 GB</td><td>SCSI / 60 GB</td></tr>
+<tr><td>Disks</td><td>Discard / IO thread</td><td colspan="2">Marcados. Marque também <em>SSD emulation</em> se o armazenamento for SSD.</td></tr>
+<tr><td>CPU</td><td>Cores / Type</td><td colspan="2">2 cores / <code>host</code> (se houver cluster com migração entre hosts diferentes, use <code>x86-64-v2-AES</code>)</td></tr>
+<tr><td>Memory</td><td>Memória</td><td>4096 MB</td><td>4096 MB</td></tr>
+<tr><td>Network</td><td>Bridge / Model</td><td colspan="2"><code>vmbr0</code> (ou a bridge da sua rede interna) / <code>VirtIO (paravirtualized)</code></td></tr></table>
+<p>Na tela final, confira o resumo e clique em <strong>Finish</strong>. Ainda não ligue as VMs.</p>
+<div class="note"><strong>Dica:</strong> na aba <strong>Notes</strong> de cada VM, anote o IP, a finalidade e as aplicações que ela hospeda. Isso ajuda muito quando houver mais VMs.</div>
+</section>
+
+<section class="step" id="etapa-04">
+<h2>4. Instalar o Ubuntu Server nas VMs</h2>
+<p><span class="pill">Executar em: console do Proxmox, nas duas VMs</span></p>
+<p>Ligue a VM (<strong>Start</strong>) e abra o <strong>Console</strong>. O instalador pode mudar um pouco entre versões; as escolhas abaixo são as que importam:</p>
+<table><tr><th>Tela do instalador</th><th>O que escolher</th></tr>
+<tr><td>Idioma / teclado</td><td>Idioma de sua preferência. Teclado <em>Portuguese (Brazil)</em>, variante ABNT2 se for o seu teclado.</td></tr>
+<tr><td>Tipo de instalação</td><td><strong>Ubuntu Server</strong> (não a versão "minimized").</td></tr>
+<tr><td>Rede</td><td>Selecione a placa (normalmente <code>ens18</code>) → <strong>Edit IPv4</strong> → <strong>Manual</strong>. Preencha: <em>Subnet</em> <code>192.168.1.0/24</code>, <em>Address</em> o IP da VM, <em>Gateway</em>, <em>Name servers</em>. Isso já deixa o IP fixo.</td></tr>
+<tr><td>Proxy / espelho</td><td>Deixe em branco / padrão.</td></tr>
+<tr><td>Armazenamento</td><td><em>Use an entire disk</em> com <em>Set up this disk as an LVM group</em>. <strong>Veja o aviso abaixo sobre o tamanho.</strong></td></tr>
+<tr><td>Perfil</td><td><em>Your name</em>: seu nome. <em>Server name</em>: <code>vm-apps</code> ou <code>vm-banco</code>. <em>Username</em>: <code>&lt;SEU_USUARIO&gt;</code>. Senha forte, guardada no cofre.</td></tr>
+<tr><td>Ubuntu Pro</td><td>Pule por enquanto (<em>Skip</em>).</td></tr>
+<tr><td>SSH</td><td>Marque <strong>Install OpenSSH server</strong>. Em <em>Import SSH key</em>, escolha <strong>from GitHub</strong> e informe <code>&lt;USUARIO_GITHUB&gt;</code>: o instalador busca a chave pública que você cadastrou no guia do GitHub e já libera seu acesso por chave.</td></tr>
+<tr><td>Snaps em destaque</td><td>Não marque nenhum.</td></tr></table>
+<div class="warning"><strong>Aviso sobre o disco:</strong> o instalador do Ubuntu costuma usar só parte do disco no volume principal (<code>ubuntu-lv</code>), deixando o resto livre. Na tela de resumo do armazenamento, edite o <code>ubuntu-lv</code> e coloque o tamanho máximo. Se esquecer, a etapa 5 mostra como corrigir depois.</div>
+<p>Ao terminar, selecione <strong>Reboot Now</strong>. Se o console pedir para remover a mídia de instalação, vá em <strong>Hardware → CD/DVD Drive → Edit → Do not use any media</strong> e pressione Enter no console.</p>
+</section>
+
+<section class="step" id="etapa-05">
+<h2>5. Primeiro acesso, atualização e ajustes básicos</h2>
+<p><span class="pill">Executar em: vm-apps e vm-banco</span></p>
+<h3>5.1 Conectar pelo SSH</h3>
+<p>No <strong>PowerShell do seu computador</strong>:</p>
+<pre><code>ssh &lt;SEU_USUARIO&gt;@&lt;IP_DA_VM&gt;</code></pre>
+<p>Na primeira conexão, responda <code>yes</code> para registrar a identidade do servidor. Se você importou a chave do GitHub, o acesso acontece sem senha (pode pedir a frase-senha da sua chave).</p>
+<h3>5.2 Atualizar o sistema e instalar ferramentas básicas</h3>
+<pre><code>sudo apt update
+sudo apt full-upgrade -y
+sudo apt install -y ca-certificates curl gnupg git unzip jq htop qemu-guest-agent</code></pre>
+<p>O <code>sudo</code> executa o comando como administrador e pede a <strong>sua</strong> senha. <code>apt update</code> atualiza a lista de pacotes; <code>full-upgrade</code> instala as atualizações.</p>
+<h3>5.3 Fuso horário e relógio</h3>
+<pre><code>sudo timedatectl set-timezone America/Sao_Paulo
+timedatectl status</code></pre>
+<p>Resultado esperado: <code>Time zone: America/Sao_Paulo</code> e <code>System clock synchronized: yes</code>. Relógio correto é essencial para HTTPS, logs e backups.</p>
+<h3>5.4 Ativar o agente do Proxmox</h3>
+<pre><code>sudo systemctl start qemu-guest-agent
+systemctl status qemu-guest-agent --no-pager</code></pre>
+<p>Se o status indicar que o dispositivo não existe, a opção <em>Qemu Agent</em> não estava marcada na criação da VM: marque em <strong>Options → QEMU Guest Agent</strong> no Proxmox e faça um desligamento completo (<code>sudo poweroff</code> e depois <strong>Start</strong>). Um simples reboot não aplica essa mudança. Validação: no Proxmox, a aba <strong>Summary</strong> da VM passa a mostrar os IPs.</p>
+<h3>5.5 Conferir o disco</h3>
+<pre><code>df -h /
+sudo vgs</code></pre>
+<p>Se o <code>df</code> mostrar um tamanho bem menor que o disco criado e a coluna <code>VFree</code> do <code>vgs</code> tiver espaço livre, expanda o volume para usar tudo:</p>
+<pre><code>sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+df -h /</code></pre>
+<h3>5.6 Registrar os nomes das VMs</h3>
+<p>Para que uma VM encontre a outra pelo nome, acrescente as duas no arquivo <code>/etc/hosts</code>:</p>
+<pre><code>echo "&lt;IP_VM_APPS&gt;   vm-apps"  | sudo tee -a /etc/hosts
+echo "&lt;IP_VM_BANCO&gt;  vm-banco" | sudo tee -a /etc/hosts
+ping -c 3 vm-banco
+ping -c 3 vm-apps</code></pre>
+<h3>5.7 Reiniciar se necessário</h3>
+<pre><code>[ -f /var/run/reboot-required ] &amp;&amp; echo "REINICIAR" || echo "Não precisa reiniciar"</code></pre>
+<p>Se aparecer <code>REINICIAR</code>, execute <code>sudo reboot</code>, aguarde um minuto e conecte novamente.</p>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">vm-banco: atualizada, fuso correto, agente ativo, disco inteiro em uso.</label></li>
+<li><label><input class="task-check" type="checkbox">vm-apps: atualizada, fuso correto, agente ativo, disco inteiro em uso.</label></li>
+<li><label><input class="task-check" type="checkbox">As duas VMs se encontram pelo nome (<code>ping</code> funcionou).</label></li></ul>
+</section>
+
+<section class="step" id="etapa-06">
+<h2>6. Conferir o IP fixo (netplan)</h2>
+<p><span class="pill">Executar em: vm-apps e vm-banco, pelo console do Proxmox</span></p>
+<p>Se você configurou o IP manual no instalador, esta etapa é só conferência. Execute pelo <strong>console do Proxmox</strong>: se algo der errado na rede, o SSH cai, mas o console continua funcionando.</p>
+<pre><code>ip -br address
+ip route
+ls /etc/netplan/
+sudo cat /etc/netplan/*.yaml</code></pre>
+<p>Confirme o IP esperado na placa (<code>ens18</code>), a rota <code>default via &lt;GATEWAY&gt;</code> e, no arquivo, <code>dhcp4: false</code> ou a ausência de <code>dhcp4: true</code>.</p>
+<h3>Se o IP estiver por DHCP, configure manualmente</h3>
+<p>Impeça o cloud-init de reescrever a rede e edite o arquivo:</p>
+<pre><code>echo "network: {config: disabled}" | sudo tee /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+sudo nano /etc/netplan/50-cloud-init.yaml</code></pre>
+<p>Conteúdo (a indentação com espaços é obrigatória; nunca use Tab):</p>
+<pre><code>network:
+  version: 2
+  ethernets:
+    ens18:
+      dhcp4: false
+      addresses:
+        - &lt;IP_DA_VM&gt;/&lt;PREFIXO&gt;
+      routes:
+        - to: default
+          via: &lt;GATEWAY&gt;
+      nameservers:
+        addresses: [&lt;DNS&gt;, 1.1.1.1]</code></pre>
+<pre><code>sudo chmod 600 /etc/netplan/50-cloud-init.yaml
+sudo netplan try</code></pre>
+<p>O <code>netplan try</code> aplica a configuração e espera você pressionar Enter para confirmar. Se a rede quebrar e você não confirmar, ele desfaz sozinho em 120 segundos. Depois, teste:</p>
+<pre><code>ping -c 3 &lt;GATEWAY&gt;
+ping -c 3 ubuntu.com</code></pre>
+</section>
+
+<section class="step" id="etapa-07">
+<h2>7. Proteger o acesso SSH</h2>
+<p><span class="pill">Executar em: vm-apps e vm-banco</span></p>
+<h3>7.1 Garantir que sua chave está instalada</h3>
+<p>Se você <strong>não</strong> importou a chave do GitHub na instalação, copie-a agora. No <strong>PowerShell do seu computador</strong>:</p>
+<pre><code>Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub | ssh &lt;SEU_USUARIO&gt;@&lt;IP_DA_VM&gt; "mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh &amp;&amp; cat &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; chmod 600 ~/.ssh/authorized_keys"</code></pre>
+<p>Em uma <strong>nova janela</strong> do PowerShell, conecte novamente. Se entrar sem pedir a senha do servidor (apenas a frase-senha da chave, se houver), a chave funciona. <strong>Não avance sem isso.</strong></p>
+<h3>7.2 Desativar login por senha e do root</h3>
+<p>Em vez de alterar o arquivo principal, crie um arquivo próprio de configuração. O SSH lê os arquivos da pasta <code>sshd_config.d</code> em ordem alfabética e usa o primeiro valor que encontra, por isso o nome começa com <code>10-</code>: ele vence o arquivo <code>50-cloud-init.conf</code>, que às vezes liga o login por senha.</p>
+<pre><code>sudo nano /etc/ssh/sshd_config.d/10-seguranca.conf</code></pre>
+<pre><code>PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+MaxAuthTries 3
+X11Forwarding no</code></pre>
+<pre><code>sudo sshd -t
+sudo sshd -T | grep -Ei '^(permitrootlogin|passwordauthentication|pubkeyauthentication)'
+sudo systemctl restart ssh</code></pre>
+<p>O <code>sshd -t</code> não deve mostrar nada (sem erros). O <code>sshd -T</code> deve mostrar <code>permitrootlogin no</code>, <code>passwordauthentication no</code> e <code>pubkeyauthentication yes</code>.</p>
+<div class="warning"><strong>Mantenha a sessão atual aberta</strong> e teste uma nova conexão em outra janela antes de fechar qualquer coisa. Se a nova conexão falhar, use o console do Proxmox, apague o arquivo com <code>sudo rm /etc/ssh/sshd_config.d/10-seguranca.conf</code> e reinicie o SSH.</div>
+</section>
+
+<section class="step" id="etapa-08">
+<h2>8. Atualizações automáticas, fail2ban e snapshot da base</h2>
+<p><span class="pill">Executar em: vm-apps e vm-banco</span></p>
+<h3>8.1 Atualizações de segurança automáticas</h3>
+<pre><code>sudo apt install -y unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades</code></pre>
+<p>Responda <strong>Sim</strong>. Confirme o resultado:</p>
+<pre><code>cat /etc/apt/apt.conf.d/20auto-upgrades</code></pre>
+<p>Deve conter <code>APT::Periodic::Update-Package-Lists "1";</code> e <code>APT::Periodic::Unattended-Upgrade "1";</code>. As atualizações de segurança passam a ser instaladas diariamente. O servidor <strong>não</strong> reinicia sozinho; a rotina da etapa 25 cuida disso.</p>
+<h3>8.2 fail2ban: bloquear tentativas repetidas de login</h3>
+<pre><code>sudo apt install -y fail2ban
+sudo nano /etc/fail2ban/jail.local</code></pre>
+<pre><code>[DEFAULT]
+bantime  = 1h
+findtime = 10m
+maxretry = 5
+
+[sshd]
+enabled = true
+backend = systemd</code></pre>
+<pre><code>sudo systemctl enable --now fail2ban
+sudo systemctl restart fail2ban
+sudo fail2ban-client status sshd</code></pre>
+<p>Resultado esperado: <code>Status for the jail: sshd</code> com os contadores de falhas e bloqueios. Se um dia você bloquear o próprio IP, entre pelo console do Proxmox e execute <code>sudo fail2ban-client set sshd unbanip &lt;SEU_IP&gt;</code>.</p>
+<h3>8.3 Snapshot da base pronta</h3>
+<p>No Proxmox, selecione a VM → <strong>Snapshots → Take Snapshot</strong>, com o nome <code>base-pronta</code>. Se algo der muito errado nas próximas etapas, você volta a este ponto em vez de reinstalar.</p>
+<div class="note"><strong>Snapshot não é backup:</strong> ele fica no mesmo armazenamento da VM e deixa a VM mais lenta se acumular. Apague snapshots antigos depois que tudo estiver funcionando. O backup de verdade é o Proxmox Backup Server: confirme em <strong>Datacenter → Backup</strong> que existe um job incluindo as duas VMs.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">vm-banco: SSH só por chave, atualizações automáticas, fail2ban e snapshot.</label></li>
+<li><label><input class="task-check" type="checkbox">vm-apps: SSH só por chave, atualizações automáticas, fail2ban e snapshot.</label></li>
+<li><label><input class="task-check" type="checkbox">Job do Proxmox Backup Server inclui as duas VMs.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-09">
+<h2>9. Firewall da vm-banco</h2>
+<p><span class="pill">Executar em: vm-banco</span></p>
+<p>A vm-banco aceita só duas coisas: SSH vindo da rede interna e PostgreSQL vindo <strong>exclusivamente</strong> da vm-apps. Todo o resto é bloqueado.</p>
+<pre><code>sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow from &lt;REDE_INTERNA&gt; to any port 22 proto tcp comment 'SSH rede interna'
+sudo ufw allow from &lt;IP_VM_APPS&gt; to any port 5432 proto tcp comment 'PostgreSQL vm-apps'
+sudo ufw show added
+sudo ufw enable
+sudo ufw status verbose</code></pre>
+<p>O <code>ufw show added</code> mostra as regras antes de ativar: confira se a regra de SSH está lá. Ao ativar, confirme com <code>y</code>. Teste uma nova conexão SSH em outra janela.</p>
+<div class="warning">Se você administra de uma rede diferente (por exemplo, via VPN com outra faixa de IPs), inclua essa faixa na regra de SSH <strong>antes</strong> do <code>ufw enable</code>, ou você perderá o acesso remoto. Nesse caso, use o console do Proxmox e <code>sudo ufw disable</code> para corrigir.</div>
+</section>
+
+<section class="step" id="etapa-10">
+<h2>10. Instalar o PostgreSQL</h2>
+<p><span class="pill">Executar em: vm-banco</span></p>
+<pre><code>sudo apt install -y postgresql
+sudo systemctl status postgresql --no-pager
+ls /etc/postgresql/</code></pre>
+<p>O último comando mostra a versão principal instalada (por exemplo <code>18</code>). Ela é usada nos caminhos dos arquivos de configuração. Para não precisar digitar, guarde-a numa variável da sessão:</p>
+<pre><code>PGVER=$(ls /etc/postgresql/)
+echo "Versão do PostgreSQL: $PGVER"
+sudo -u postgres psql -c "SELECT version();"
+sudo -u postgres psql -c "SHOW ssl;"</code></pre>
+<p>O <code>SHOW ssl</code> deve mostrar <code>on</code>: o Ubuntu já ativa a criptografia com um certificado gerado na instalação. A conexão entre as VMs será cifrada.</p>
+<div class="note"><strong>Sobre o <code>sudo -u postgres</code>:</strong> a instalação cria o usuário de sistema <code>postgres</code>, que é o administrador do banco. Esse prefixo executa o comando como ele. A variável <code>PGVER</code> vale só para a sessão atual: se reconectar, execute de novo a linha <code>PGVER=$(ls /etc/postgresql/)</code>.</div>
+</section>
+
+<section class="step" id="etapa-11">
+<h2>11. Permitir conexões da vm-apps</h2>
+<p><span class="pill">Executar em: vm-banco</span></p>
+<p>Por padrão, o PostgreSQL só aceita conexões da própria máquina. São duas configurações: <strong>onde ele escuta</strong> e <strong>quem pode entrar</strong>.</p>
+<h3>11.1 Escutar também no IP da rede interna</h3>
+<p>O arquivo principal do Ubuntu inclui automaticamente os arquivos da pasta <code>conf.d</code>. Crie um arquivo próprio lá, sem mexer no principal:</p>
+<pre><code>sudo nano /etc/postgresql/$PGVER/main/conf.d/10-rede.conf</code></pre>
+<pre><code>listen_addresses = 'localhost,&lt;IP_VM_BANCO&gt;'
+password_encryption = 'scram-sha-256'</code></pre>
+<h3>11.2 Definir quem pode entrar (pg_hba.conf)</h3>
+<p>O <code>pg_hba.conf</code> é a lista de acesso do banco. Cada linha diz: tipo de conexão, qual banco, qual usuário, de qual IP e como autenticar.</p>
+<pre><code>sudo cp -a /etc/postgresql/$PGVER/main/pg_hba.conf /etc/postgresql/$PGVER/main/pg_hba.conf.original
+sudo nano /etc/postgresql/$PGVER/main/pg_hba.conf</code></pre>
+<p>Vá até o final do arquivo e acrescente uma linha por aplicação:</p>
+<pre><code># Aplicações na vm-apps — somente cifrado (hostssl), somente o IP da vm-apps
+# TIPO     BANCO        USUARIO        ENDERECO            METODO
+hostssl    estoque_db   estoque_user   &lt;IP_VM_APPS&gt;/32     scram-sha-256</code></pre>
+<table><tr><th>Campo</th><th>Significado</th></tr>
+<tr><td><code>hostssl</code></td><td>Aceita só conexões de rede cifradas. Conexões sem criptografia são recusadas.</td></tr>
+<tr><td><code>estoque_db</code> / <code>estoque_user</code></td><td>Esse usuário só entra nesse banco. Uma aplicação não acessa o banco da outra.</td></tr>
+<tr><td><code>&lt;IP_VM_APPS&gt;/32</code></td><td>O <code>/32</code> significa exatamente um IP, o da vm-apps.</td></tr>
+<tr><td><code>scram-sha-256</code></td><td>Autenticação por senha com o método seguro atual.</td></tr></table>
+<h3>11.3 Aplicar e conferir</h3>
+<pre><code>sudo systemctl restart postgresql
+sudo systemctl status postgresql --no-pager
+sudo ss -lntp | grep 5432</code></pre>
+<p>Resultado esperado: o PostgreSQL escutando em <code>127.0.0.1:5432</code> e em <code>&lt;IP_VM_BANCO&gt;:5432</code>. Se o serviço não subir, veja o motivo com <code>sudo journalctl -u postgresql@$PGVER-main -n 50 --no-pager</code>.</p>
+<div class="note">Mudanças no <code>listen_addresses</code> exigem <code>restart</code>. Mudanças apenas no <code>pg_hba.conf</code> (como adicionar uma aplicação nova) só precisam de <code>sudo systemctl reload postgresql</code>, que não derruba conexões.</div>
+</section>
+
+<section class="step" id="etapa-12">
+<h2>12. Criar o banco e o usuário de cada aplicação</h2>
+<p><span class="pill">Executar em: vm-banco</span></p>
+<h3>12.1 Gerar uma senha forte</h3>
+<pre><code>openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 32; echo</code></pre>
+<p>A senha gerada tem só letras e números, o que evita problemas ao colocá-la no endereço de conexão. <strong>Copie e guarde no cofre de senhas</strong> com o nome da aplicação.</p>
+<h3>12.2 Criar usuário e banco</h3>
+<pre><code>sudo -u postgres createuser --pwprompt --no-createdb --no-createrole --no-superuser estoque_user
+sudo -u postgres createdb --owner=estoque_user estoque_db
+sudo -u postgres psql -c "REVOKE CONNECT ON DATABASE estoque_db FROM PUBLIC;"</code></pre>
+<p>O <code>--pwprompt</code> pede a senha duas vezes (cole a senha gerada). Digitando a senha no prompt, ela não fica gravada no histórico do terminal. O <code>REVOKE</code> impede que outros usuários do banco se conectem a esse banco.</p>
+<h3>12.3 Conferir</h3>
+<pre><code>sudo -u postgres psql -c "\du"
+sudo -u postgres psql -c "\l"</code></pre>
+<p>O <code>\du</code> lista os usuários: <code>estoque_user</code> deve aparecer sem atributos de superusuário. O <code>\l</code> lista os bancos: <code>estoque_db</code> com dono <code>estoque_user</code>.</p>
+<div class="note"><strong>Se a aplicação já tem dados</strong> no seu computador que precisam ir para o servidor, gere um arquivo com <code>pg_dump -Fc -f estoque.dump &lt;banco_local&gt;</code> no seu computador, copie para a vm-banco com <code>scp estoque.dump &lt;SEU_USUARIO&gt;@&lt;IP_VM_BANCO&gt;:/tmp/</code> e restaure com <code>sudo -u postgres pg_restore --no-owner --role=estoque_user -d estoque_db /tmp/estoque.dump</code>. Apague o arquivo de <code>/tmp</code> depois.</div>
+</section>
+
+<section class="step" id="etapa-13">
+<h2>13. Backup diário dos bancos com pg_dump</h2>
+<p><span class="pill">Executar em: vm-banco</span></p>
+<p>O Proxmox Backup Server copia a VM inteira. O <code>pg_dump</code> complementa: gera um arquivo por banco, permitindo restaurar <strong>uma única aplicação</strong> sem voltar a VM toda e sem perder os dados das outras.</p>
+<h3>13.1 Criar a pasta e o script</h3>
+<pre><code>sudo install -d -o postgres -g postgres -m 700 /var/backups/postgresql
+sudo nano /usr/local/bin/backup-postgres.sh</code></pre>
+<pre><code>#!/usr/bin/env bash
+# Backup lógico diário de todos os bancos do PostgreSQL
+set -euo pipefail
+
+DESTINO="/var/backups/postgresql"
+RETENCAO_DIAS=14
+DATA=$(date +%F_%H%M)
+
+cd "$DESTINO"
+
+BANCOS=$(psql -AtX -c "SELECT datname FROM pg_database WHERE datallowconn AND NOT datistemplate AND datname &lt;&gt; 'postgres';")
+
+for BANCO in $BANCOS; do
+  echo "Copiando $BANCO..."
+  pg_dump -Fc -f "${DESTINO}/${BANCO}_${DATA}.dump" "$BANCO"
+done
+
+# Usuários e permissões (não fazem parte do pg_dump de cada banco)
+pg_dumpall --globals-only -f "${DESTINO}/globais_${DATA}.sql"
+
+# Apaga cópias mais antigas que a retenção
+find "$DESTINO" -type f \( -name '*.dump' -o -name '*.sql' \) -mtime +"$RETENCAO_DIAS" -delete
+
+echo "Backup concluído em $(date)"</code></pre>
+<pre><code>sudo chmod 750 /usr/local/bin/backup-postgres.sh
+sudo chown root:postgres /usr/local/bin/backup-postgres.sh</code></pre>
+<h3>13.2 Agendar com o systemd</h3>
+<p>Crie o serviço, que diz <strong>o que</strong> executar:</p>
+<pre><code>sudo nano /etc/systemd/system/backup-postgres.service</code></pre>
+<pre><code>[Unit]
+Description=Backup lógico diário do PostgreSQL
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=postgres
+Group=postgres
+ExecStart=/usr/local/bin/backup-postgres.sh</code></pre>
+<p>E o timer, que diz <strong>quando</strong> executar:</p>
+<pre><code>sudo nano /etc/systemd/system/backup-postgres.timer</code></pre>
+<pre><code>[Unit]
+Description=Agenda o backup diário do PostgreSQL
+
+[Timer]
+OnCalendar=*-*-* 01:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target</code></pre>
+<pre><code>sudo systemctl daemon-reload
+sudo systemctl enable --now backup-postgres.timer
+systemctl list-timers backup-postgres.timer</code></pre>
+<p>O <code>Persistent=true</code> faz o backup rodar assim que a VM ligar, caso ela estivesse desligada no horário. Configure o job do Proxmox Backup Server para <strong>depois</strong> das 01:30 (por exemplo 02:30): assim o backup da VM já leva os arquivos do dia.</p>
+<h3>13.3 Testar agora e testar a restauração</h3>
+<pre><code>sudo systemctl start backup-postgres.service
+sudo journalctl -u backup-postgres.service -n 20 --no-pager
+sudo ls -lh /var/backups/postgresql/</code></pre>
+<p>Um backup só vale se a restauração funciona. Teste restaurando num banco temporário:</p>
+<pre><code>ARQUIVO=$(sudo ls -t /var/backups/postgresql/estoque_db_*.dump | head -1)
+sudo -u postgres createdb teste_restauracao
+sudo -u postgres pg_restore --no-owner -d teste_restauracao "$ARQUIVO"
+sudo -u postgres psql -d teste_restauracao -c "\dt"
+sudo -u postgres dropdb teste_restauracao</code></pre>
+<p>Com o banco ainda vazio, o <code>\dt</code> pode não listar tabelas. Repita este teste depois que a aplicação estiver em uso: as tabelas dela devem aparecer.</p>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Timer ativo e primeiro backup gerado.</label></li>
+<li><label><input class="task-check" type="checkbox">Restauração testada num banco temporário.</label></li>
+<li><label><input class="task-check" type="checkbox">Job do Proxmox Backup Server agendado depois das 01:30.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-14">
+<h2>14. Firewall da vm-apps</h2>
+<p><span class="pill">Executar em: vm-apps</span></p>
+<p>A vm-apps recebe SSH da rede interna e HTTP/HTTPS de qualquer lugar. As portas das aplicações (3001, 3002...) <strong>não</strong> são abertas: só o Nginx fala com elas, dentro da própria VM.</p>
+<pre><code>sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow from &lt;REDE_INTERNA&gt; to any port 22 proto tcp comment 'SSH rede interna'
+sudo ufw allow 80/tcp comment 'HTTP'
+sudo ufw allow 443/tcp comment 'HTTPS'
+sudo ufw show added
+sudo ufw enable
+sudo ufw status verbose</code></pre>
+<p>Teste uma nova conexão SSH em outra janela antes de fechar a atual.</p>
+</section>
+
+<section class="step" id="etapa-15">
+<h2>15. Instalar o Node.js 24 LTS e testar a conexão com o banco</h2>
+<p><span class="pill">Executar em: vm-apps</span></p>
+<h3>15.1 Node.js pelo repositório NodeSource</h3>
+<p>O repositório do Ubuntu também tem Node.js, mas o NodeSource entrega a linha LTS escolhida e suas atualizações de segurança. Baixe o script, leia antes de executar e depois instale:</p>
+<pre><code>curl -fsSL https://deb.nodesource.com/setup_24.x -o /tmp/nodesource_setup.sh
+less /tmp/nodesource_setup.sh     # leia; tecla q para sair
+sudo bash /tmp/nodesource_setup.sh
+sudo apt install -y nodejs
+node -v
+npm -v</code></pre>
+<p>Resultado esperado: <code>node -v</code> mostra <code>v24.x.x</code>.</p>
+<div class="warning">Confira a versão LTS vigente em <a href="https://nodejs.org/en/about/previous-releases" target="_blank" rel="noopener">nodejs.org</a> e a compatibilidade das suas aplicações. Se elas exigirem outra versão, troque <code>24</code> no endereço do script.</div>
+<h3>15.2 Testar a conexão com a vm-banco</h3>
+<pre><code>sudo apt install -y postgresql-client
+psql "host=&lt;IP_VM_BANCO&gt; dbname=estoque_db user=estoque_user sslmode=require" -c "\conninfo"</code></pre>
+<p>Digite a senha do <code>estoque_user</code>. Resultado esperado: uma mensagem dizendo que você está conectado ao banco <code>estoque_db</code>, com uma linha sobre <strong>SSL connection</strong>. Isso prova que firewall, <code>listen_addresses</code>, <code>pg_hba.conf</code> e senha estão corretos.</p>
+<p>Teste também que a segurança funciona: sem criptografia, a conexão deve ser <strong>recusada</strong>:</p>
+<pre><code>psql "host=&lt;IP_VM_BANCO&gt; dbname=estoque_db user=estoque_user sslmode=disable" -c "\conninfo"</code></pre>
+<p>Resultado esperado: erro contendo <code>no pg_hba.conf entry</code> e <code>no encryption</code>. Se conectar, revise a linha <code>hostssl</code> da etapa 11.</p>
+</section>
+
+<section class="step" id="etapa-16">
+<h2>16. Criar o usuário das aplicações e instalar o PM2</h2>
+<p><span class="pill">Executar em: vm-apps</span></p>
+<p>As aplicações não rodam com a sua conta nem como root. Elas rodam com o usuário <code>apps</code>, sem senha e sem permissão de administrador. Se uma aplicação for invadida, o estrago fica limitado a esse usuário.</p>
+<h3>16.1 Usuário e pasta</h3>
+<pre><code>sudo adduser --disabled-password --gecos "" apps
+sudo install -d -o apps -g apps -m 755 /srv/apps
+sudo install -d -o apps -g apps -m 755 /srv/apps/bin</code></pre>
+<p>O <code>--disabled-password</code> impede login com senha. Para trabalhar como <code>apps</code>, a partir da sua conta, use:</p>
+<pre><code>sudo -iu apps       # entra como apps
+whoami              # deve mostrar: apps
+exit                # volta para sua conta</code></pre>
+<h3>16.2 PM2</h3>
+<p>O PM2 mantém as aplicações Node.js rodando, reinicia se caírem, guarda os logs e sobe tudo quando o servidor liga.</p>
+<pre><code>sudo npm install -g pm2
+pm2 -v
+sudo pm2 startup systemd -u apps --hp /home/apps
+systemctl status pm2-apps --no-pager</code></pre>
+<p>O comando <code>pm2 startup</code> cria o serviço <code>pm2-apps</code>, que inicia o PM2 do usuário <code>apps</code> no boot. Ele pode aparecer como <em>inactive</em> até existir a primeira aplicação salva, na etapa 18.</p>
+<h3>16.3 Rotação de logs</h3>
+<p>Sem rotação, os logs crescem até encher o disco:</p>
+<pre><code>sudo -iu apps
+pm2 install pm2-logrotate
+pm2 set pm2-logrotate:max_size 10M
+pm2 set pm2-logrotate:retain 14
+pm2 set pm2-logrotate:compress true
+exit</code></pre>
+</section>
+
+<section class="step" id="etapa-17">
+<h2>17. Baixar as aplicações do GitHub</h2>
+<p><span class="pill">Executar em: vm-apps, como usuário apps</span></p>
+<p>Aqui você aplica as etapas 13 e 14 do guia do GitHub, <strong>sempre como usuário <code>apps</code></strong>. Resumo para a aplicação <code>estoque</code> (repita para cada repositório):</p>
+<h3>17.1 Deploy key</h3>
+<pre><code>sudo -iu apps
+mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh
+ssh-keygen -t ed25519 -f ~/.ssh/github_estoque -N "" -C "deploy estoque vm-apps"
+cat ~/.ssh/github_estoque.pub</code></pre>
+<p>Cadastre a linha exibida em <strong>repositório → Settings → Deploy keys → Add deploy key</strong>, <strong>sem</strong> marcar <em>Allow write access</em>. Depois, acrescente o apelido:</p>
+<pre><code>cat &gt;&gt; ~/.ssh/config &lt;&lt;'EOF'
+Host github-estoque
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/github_estoque
+    IdentitiesOnly yes
+
+EOF
+chmod 600 ~/.ssh/config
+ssh -T git@github-estoque</code></pre>
+<p>Confira a impressão digital com a documentação do GitHub e responda <code>yes</code>. Resultado esperado: <code>Hi &lt;USUARIO_GITHUB&gt;/estoque! You've successfully authenticated...</code></p>
+<h3>17.2 Clonar</h3>
+<pre><code>cd /srv/apps
+git clone git@github-estoque:&lt;USUARIO_GITHUB&gt;/estoque.git
+ls -la /srv/apps/estoque
+exit</code></pre>
+<p>Para a aplicação estática <code>portal</code>, repita com a chave <code>github_portal</code>, o apelido <code>github-portal</code> e clone em <code>/srv/apps/portal</code>.</p>
+</section>
+
+<section class="step" id="etapa-18">
+<h2>18. Configurar e iniciar uma aplicação Node.js</h2>
+<p><span class="pill">Executar em: vm-apps, como usuário apps</span></p>
+<h3>18.1 Descobrir como a aplicação inicia</h3>
+<pre><code>sudo -iu apps
+cd /srv/apps/estoque
+cat package.json | jq '.main, .scripts'</code></pre>
+<p>Procure o arquivo principal: o campo <code>main</code> ou o comando do script <code>start</code> (por exemplo <code>node server.js</code> ou <code>node src/index.js</code>). Anote o caminho do arquivo.</p>
+<h3>18.2 A aplicação deve escutar só em 127.0.0.1</h3>
+<p>Verifique no código onde a aplicação chama <code>listen</code>. O ideal é:</p>
+<pre><code>const PORT = process.env.PORT || 3001;
+app.listen(PORT, '127.0.0.1', () =&gt; console.log(`Rodando na porta ${PORT}`));</code></pre>
+<p>Informar <code>'127.0.0.1'</code> faz a aplicação aceitar conexões só de dentro da VM, ou seja, só do Nginx. O firewall já bloqueia a porta, mas essa é uma segunda camada. Se precisar alterar, faça no seu computador, commit, push e <code>git pull</code> aqui.</p>
+<h3>18.3 Criar o <code>.env</code></h3>
+<pre><code>cp .env.example .env
+nano .env
+chmod 600 .env</code></pre>
+<p>Preencha com os valores reais. Exemplo:</p>
+<pre><code>NODE_ENV=production
+PORT=3001
+DATABASE_URL=postgres://estoque_user:&lt;SENHA_DO_COFRE&gt;@&lt;IP_VM_BANCO&gt;:5432/estoque_db?sslmode=no-verify</code></pre>
+<div class="note"><strong>Sobre o <code>sslmode</code>:</strong> o certificado do PostgreSQL é gerado pelo próprio Ubuntu, não por uma autoridade reconhecida. Com a biblioteca <code>pg</code> (node-postgres), use <code>sslmode=no-verify</code>: a conexão continua cifrada, só não valida a identidade do certificado, o que é aceitável dentro da rede interna com firewall liberando apenas a vm-apps. Com Prisma ou outras bibliotecas, use <code>sslmode=require</code>. Se aparecer erro <code>self-signed certificate</code>, é esse ajuste que falta.</div>
+<h3>18.4 Instalar dependências</h3>
+<pre><code>npm ci --omit=dev</code></pre>
+<p>O <code>npm ci</code> exige o <code>package-lock.json</code> e instala exatamente as versões registradas. O <code>--omit=dev</code> deixa de fora ferramentas de desenvolvimento. Se a aplicação tem um passo de criação de tabelas (migrations ou um arquivo <code>.sql</code>), execute agora, conforme o README dela.</p>
+<h3>18.5 Arquivo de configuração do PM2</h3>
+<p>Um único arquivo descreve todas as aplicações Node.js do servidor:</p>
+<pre><code>nano /srv/apps/ecosystem.config.cjs</code></pre>
+<pre><code>module.exports = {
+  apps: [
+    {
+      name: "estoque",
+      cwd: "/srv/apps/estoque",
+      script: "server.js",            // arquivo principal descoberto em 18.1
+      node_args: "--env-file=.env",   // Node lê o .env da pasta da aplicação
+      instances: 1,
+      autorestart: true,
+      max_memory_restart: "400M",     // reinicia se passar desse consumo
+      time: true                      // data e hora em cada linha de log
+    }
+    // próximas aplicações entram aqui, separadas por vírgula
+  ]
+};</code></pre>
+<h3>18.6 Iniciar, testar e salvar</h3>
+<pre><code>pm2 start /srv/apps/ecosystem.config.cjs
+pm2 status
+pm2 logs estoque --lines 30 --nostream
+curl -i http://127.0.0.1:3001/
+pm2 save
+exit</code></pre>
+<p>Resultado esperado: <code>pm2 status</code> com <code>estoque</code> em <strong>online</strong> e o <code>curl</code> retornando uma resposta HTTP (200, ou 302 se a aplicação redireciona para login). O <code>pm2 save</code> grava a lista atual para ser restaurada no boot.</p>
+<div class="warning">Se o status ficar alternando entre <em>online</em> e <em>errored</em> com o contador de reinícios (<code>↺</code>) subindo, a aplicação está travando ao iniciar. Leia <code>pm2 logs estoque --lines 50 --nostream</code>: normalmente é variável faltando no <code>.env</code>, caminho errado em <code>script</code> ou falha de conexão com o banco.</div>
+</section>
+
+<section class="step" id="etapa-19">
+<h2>19. Instalar e configurar o Nginx</h2>
+<p><span class="pill">Executar em: vm-apps</span></p>
+<h3>19.1 Instalar e ajustes gerais</h3>
+<pre><code>sudo apt install -y nginx
+sudo nano /etc/nginx/conf.d/00-geral.conf</code></pre>
+<pre><code># Não revela a versão do Nginx nas respostas e páginas de erro
+server_tokens off;
+
+# Suporte a WebSocket nas aplicações que usarem
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}</code></pre>
+<h3>19.2 Recusar acessos sem nome conhecido</h3>
+<p>Substitua o site padrão por um que encerra conexões para nomes que não são das suas aplicações (robôs que varrem IPs da internet):</p>
+<pre><code>sudo rm /etc/nginx/sites-enabled/default
+sudo nano /etc/nginx/sites-available/00-bloqueio</code></pre>
+<pre><code>server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    return 444;
+}</code></pre>
+<pre><code>sudo ln -s /etc/nginx/sites-available/00-bloqueio /etc/nginx/sites-enabled/</code></pre>
+<h3>19.3 Site da aplicação Node.js (proxy)</h3>
+<pre><code>sudo nano /etc/nginx/sites-available/estoque</code></pre>
+<pre><code>server {
+    listen 80;
+    listen [::]:80;
+    server_name estoque.&lt;DOMINIO&gt;;
+
+    access_log /var/log/nginx/estoque.access.log;
+    error_log  /var/log/nginx/estoque.error.log;
+
+    # Tamanho máximo de upload
+    client_max_body_size 20m;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        $connection_upgrade;
+        proxy_read_timeout 60s;
+    }
+}</code></pre>
+<div class="note">Se a aplicação usa Express e precisa saber o IP real do usuário ou se a conexão é HTTPS (por exemplo, para cookies seguros), adicione no código <code>app.set('trust proxy', 1);</code>. Os cabeçalhos <code>X-Forwarded-*</code> acima passam essas informações.</div>
+<h3>19.4 Site da aplicação estática</h3>
+<pre><code>sudo nano /etc/nginx/sites-available/portal</code></pre>
+<pre><code>server {
+    listen 80;
+    listen [::]:80;
+    server_name portal.&lt;DOMINIO&gt;;
+
+    access_log /var/log/nginx/portal.access.log;
+    error_log  /var/log/nginx/portal.error.log;
+
+    root /srv/apps/portal;     # pasta onde está o index.html
+    index index.html;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Bloqueia arquivos ocultos, como a pasta .git e o .env
+    location ~ /\. {
+        deny all;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}</code></pre>
+<div class="danger"><strong>Não remova o bloqueio de arquivos ocultos.</strong> A pasta foi clonada do GitHub e contém a pasta <code>.git</code>. Sem esse bloqueio, qualquer pessoa poderia baixar todo o histórico do código pelo navegador. Se o <code>index.html</code> ficar numa subpasta (como <code>public</code> ou <code>dist</code>), aponte o <code>root</code> para ela: fica ainda mais seguro.</div>
+<p>Se o portal for uma aplicação de página única (React, Vue etc.) que controla as rotas no navegador, troque o <code>try_files</code> por <code>try_files $uri $uri/ /index.html;</code>.</p>
+<h3>19.5 Ativar os sites e testar</h3>
+<pre><code>sudo ln -s /etc/nginx/sites-available/estoque /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/portal  /etc/nginx/sites-enabled/
+sudo -u www-data test -r /srv/apps/portal/index.html &amp;&amp; echo "Nginx consegue ler o portal"
+sudo nginx -t
+sudo systemctl reload nginx</code></pre>
+<p>O <code>nginx -t</code> deve terminar com <code>syntax is ok</code> e <code>test is successful</code>. <strong>Sempre</strong> rode o teste antes do <code>reload</code>: com erro de configuração, o Nginx recusa a recarga e continua com a versão anterior. Teste de dentro da VM, simulando o nome de cada site:</p>
+<pre><code>curl -i -H "Host: estoque.&lt;DOMINIO&gt;" http://127.0.0.1/
+curl -i -H "Host: portal.&lt;DOMINIO&gt;"  http://127.0.0.1/
+curl -i -H "Host: portal.&lt;DOMINIO&gt;"  http://127.0.0.1/.git/config
+curl -i http://127.0.0.1/</code></pre>
+<p>Resultados esperados: os dois primeiros respondem as aplicações; o terceiro retorna <code>403 Forbidden</code> (bloqueio funcionando); o último não retorna nada (<code>Empty reply from server</code>), pois não informa nome conhecido.</p>
+</section>
+
+<section class="step" id="etapa-20">
+<h2>20. Testar reinicialização da vm-apps</h2>
+<p><span class="pill">Executar em: vm-apps</span></p>
+<p>Antes de publicar na internet, confirme que tudo sobe sozinho após um reinício, como aconteceria depois de uma queda de energia:</p>
+<pre><code>sudo reboot</code></pre>
+<p>Aguarde um minuto, conecte novamente e confira:</p>
+<pre><code>systemctl is-active nginx pm2-apps
+sudo -iu apps pm2 status
+curl -s -o /dev/null -w "%{http_code}\n" -H "Host: estoque.&lt;DOMINIO&gt;" http://127.0.0.1/</code></pre>
+<p>Resultado esperado: <code>active</code> duas vezes, <code>estoque</code> em <strong>online</strong> e um código HTTP 200 ou 302. Se a aplicação não voltou, confirme que executou <code>pm2 save</code> como usuário <code>apps</code> (etapa 18.6).</p>
+</section>
+
+<section class="step" id="etapa-21">
+<h2>21. DNS e redirecionamento de portas no roteador</h2>
+<p><span class="pill">Executar em: painel de DNS do domínio e roteador</span></p>
+<h3>21.1 Confirmar o IP público</h3>
+<pre><code>curl -4 -s https://ifconfig.me; echo</code></pre>
+<p>Compare com o IP informado pelo provedor. Ele precisa ser fixo: se mudar, os endereços param de funcionar. Se o seu IP for dinâmico, use um serviço de DNS dinâmico ou o Cloudflare Tunnel (que publica sem depender de IP fixo nem de portas abertas); trate isso antes de seguir.</p>
+<h3>21.2 Criar os registros DNS</h3>
+<p>No painel de DNS do domínio, crie um registro para cada aplicação:</p>
+<table><tr><th>Tipo</th><th>Nome</th><th>Valor</th><th>TTL</th></tr>
+<tr><td>A</td><td><code>estoque</code></td><td>IP público da empresa</td><td>3600 (ou o padrão)</td></tr>
+<tr><td>A</td><td><code>portal</code></td><td>IP público da empresa</td><td>3600 (ou o padrão)</td></tr></table>
+<p>Verifique a propagação (pode levar de minutos a algumas horas):</p>
+<pre><code>resolvectl query estoque.&lt;DOMINIO&gt;
+resolvectl query portal.&lt;DOMINIO&gt;</code></pre>
+<h3>21.3 Redirecionar as portas no roteador</h3>
+<p>No roteador ou firewall da borda, crie o encaminhamento (Port Forwarding / NAT / Virtual Server):</p>
+<table><tr><th>Porta externa</th><th>Protocolo</th><th>Destino interno</th><th>Porta interna</th></tr>
+<tr><td>80</td><td>TCP</td><td><code>&lt;IP_VM_APPS&gt;</code></td><td>80</td></tr>
+<tr><td>443</td><td>TCP</td><td><code>&lt;IP_VM_APPS&gt;</code></td><td>443</td></tr></table>
+<div class="danger"><strong>Encaminhe só essas duas portas, só para a vm-apps.</strong> Nunca encaminhe 22 (SSH), 5432 (PostgreSQL) nem as portas das aplicações. A vm-banco nunca deve ficar alcançável pela internet.</div>
+<h3>21.4 Testar de fora</h3>
+<p>Desligue o Wi-Fi do celular e, usando a rede móvel, abra <code>http://estoque.&lt;DOMINIO&gt;</code>. A aplicação deve aparecer (ainda sem HTTPS).</p>
+<div class="warning"><strong>Funciona no celular, mas não dentro da empresa?</strong> Muitos roteadores não permitem que um computador da rede interna acesse o próprio IP público (recurso chamado <em>NAT loopback</em> ou <em>hairpin NAT</em>). A solução é ativar esse recurso no roteador ou configurar o DNS interno da empresa para que os subdomínios apontem direto para <code>&lt;IP_VM_APPS&gt;</code>.</div>
+</section>
+
+<section class="step" id="etapa-22">
+<h2>22. Ativar o HTTPS com Certbot</h2>
+<p><span class="pill">Executar em: vm-apps</span></p>
+<p>O Certbot obtém certificados gratuitos do Let's Encrypt, configura o Nginx e renova automaticamente. Ele precisa que o DNS já aponte para a empresa e que a porta 80 esteja acessível pela internet (etapa 21).</p>
+<pre><code>sudo snap install --classic certbot
+sudo ln -sf /snap/bin/certbot /usr/bin/certbot
+sudo certbot --nginx -d estoque.&lt;DOMINIO&gt; -d portal.&lt;DOMINIO&gt;</code></pre>
+<p>Na primeira vez, o Certbot pede um e-mail (para avisos de expiração; use um e-mail que alguém acompanhe) e a aceitação dos termos. Ele altera os arquivos dos sites, adicionando o HTTPS e o redirecionamento automático de HTTP para HTTPS.</p>
+<h3>Validar</h3>
+<pre><code>sudo nginx -t
+sudo certbot certificates
+sudo certbot renew --dry-run
+systemctl list-timers | grep -i certbot</code></pre>
+<p>Resultados esperados: <code>certificates</code> lista os domínios com a data de validade (cerca de 90 dias); <code>renew --dry-run</code> termina com sucesso (a renovação vai funcionar); existe um timer do certbot agendado.</p>
+<p>No navegador, abra <code>https://estoque.&lt;DOMINIO&gt;</code> e <code>https://portal.&lt;DOMINIO&gt;</code>: devem aparecer com o cadeado. Acessar pelo <code>http://</code> deve redirecionar para <code>https://</code>.</p>
+<div class="note">Com o HTTPS funcionando por algumas semanas, você pode adicionar o cabeçalho <code>Strict-Transport-Security</code> nos blocos <code>listen 443</code>, para que os navegadores passem a usar sempre HTTPS. Não faça isso antes de ter certeza de que a renovação funciona.</div>
+</section>
+
+<section class="step" id="etapa-23">
+<h2>23. Receita para adicionar uma nova aplicação</h2>
+<p><span class="pill">Executar em: vm-banco e vm-apps</span></p>
+<p>Para cada aplicação nova, repita esta sequência. Exemplo: aplicação <code>&lt;app&gt;</code> na porta <code>&lt;porta&gt;</code>.</p>
+<h3>Na vm-banco (se usar banco)</h3>
+<ol><li>Gere a senha e crie usuário e banco (etapa 12): <code>&lt;app&gt;_user</code> e <code>&lt;app&gt;_db</code>.</li>
+<li>Acrescente a linha no <code>pg_hba.conf</code> (etapa 11.2) e aplique com <code>sudo systemctl reload postgresql</code>.</li>
+<li>O backup diário já inclui o banco novo automaticamente.</li></ol>
+<h3>Na vm-apps</h3>
+<ol><li>Crie a deploy key, o apelido e clone o repositório como <code>apps</code> (etapa 17).</li>
+<li>Node.js: crie o <code>.env</code> com a próxima porta livre, rode <code>npm ci --omit=dev</code>, acrescente um bloco no <code>ecosystem.config.cjs</code> e execute como <code>apps</code>: <code>pm2 start /srv/apps/ecosystem.config.cjs --only &lt;app&gt;</code> e <code>pm2 save</code> (etapa 18).</li>
+<li>Crie o site no Nginx copiando o modelo: <code>sudo cp /etc/nginx/sites-available/estoque /etc/nginx/sites-available/&lt;app&gt;</code>. Troque nome, logs e porta (ou use o modelo do portal, se for estática). Mas atenção: o arquivo do estoque já foi alterado pelo Certbot; apague do arquivo copiado as linhas marcadas com <code># managed by Certbot</code> e o bloco de redirecionamento que ele criou, deixando só o <code>listen 80</code>.</li>
+<li>Ative, teste e recarregue: <code>ln -s</code>, <code>sudo nginx -t</code>, <code>sudo systemctl reload nginx</code>.</li>
+<li>Crie o registro DNS (etapa 21.2) e emita o certificado: <code>sudo certbot --nginx -d &lt;app&gt;.&lt;DOMINIO&gt;</code>.</li>
+<li>Atualize a tabela de aplicações da etapa 2 e as Notes da VM no Proxmox.</li></ol>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Aplicação 3 publicada.</label></li>
+<li><label><input class="task-check" type="checkbox">Aplicação 4 publicada.</label></li>
+<li><label><input class="task-check" type="checkbox">Aplicação 5 publicada.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-24">
+<h2>24. Atualizar uma aplicação com um comando</h2>
+<p><span class="pill">Executar em: vm-apps</span></p>
+<p>Depois do <code>git push</code> no seu computador, a atualização no servidor é sempre a mesma sequência. Um script evita esquecer algum passo:</p>
+<pre><code>sudo -iu apps
+nano /srv/apps/bin/atualizar.sh</code></pre>
+<pre><code>#!/usr/bin/env bash
+# Uso: /srv/apps/bin/atualizar.sh &lt;nome-da-aplicacao&gt;
+set -euo pipefail
+
+APP="${1:?Informe o nome da aplicação. Exemplo: atualizar.sh estoque}"
+DIR="/srv/apps/$APP"
+
+[ -d "$DIR/.git" ] || { echo "Pasta $DIR não é um repositório Git"; exit 1; }
+cd "$DIR"
+
+echo "==&gt; Versão atual:  $(git log --oneline -n 1)"
+git pull --ff-only
+echo "==&gt; Versão nova:   $(git log --oneline -n 1)"
+
+if [ -f package.json ] &amp;&amp; pm2 describe "$APP" &gt; /dev/null 2&gt;&amp;1; then
+  echo "==&gt; Instalando dependências"
+  npm ci --omit=dev
+  echo "==&gt; Reiniciando $APP"
+  pm2 reload "$APP"
+  sleep 3
+  pm2 status "$APP"
+else
+  echo "==&gt; Aplicação estática: nada a reiniciar"
+fi
+
+echo "==&gt; Atualização concluída"</code></pre>
+<pre><code>chmod 750 /srv/apps/bin/atualizar.sh
+/srv/apps/bin/atualizar.sh estoque
+exit</code></pre>
+<p>Para usar direto da sua conta, sem entrar como <code>apps</code>: <code>sudo -iu apps /srv/apps/bin/atualizar.sh estoque</code>.</p>
+<div class="warning">Se a atualização mudar a estrutura do banco (migrations), execute o passo de migração do README da aplicação antes do <code>pm2 reload</code>, e confirme antes que o backup da noite anterior existe. Se o <code>git pull --ff-only</code> falhar, alguém alterou arquivos direto no servidor: investigue com <code>git status</code> em vez de forçar.</div>
+</section>
+
+<section class="step" id="etapa-25">
+<h2>25. Rotina de manutenção</h2>
+<p><span class="pill">Executar em: vm-apps e vm-banco</span></p>
+<h3>Semanal (10 minutos, nas duas VMs)</h3>
+<pre><code>sudo apt update &amp;&amp; sudo apt list --upgradable
+[ -f /var/run/reboot-required ] &amp;&amp; echo "REINICIAR" || echo "Não precisa reiniciar"
+df -h /
+free -h
+systemctl --failed
+sudo fail2ban-client status sshd</code></pre>
+<p>Só na vm-apps:</p>
+<pre><code>sudo -iu apps pm2 status
+sudo certbot certificates | grep -E "Domains|Expiry"</code></pre>
+<p>Só na vm-banco:</p>
+<pre><code>sudo ls -lht /var/backups/postgresql/ | head
+systemctl list-timers backup-postgres.timer</code></pre>
+<p>Se aparecer <code>REINICIAR</code>, reinicie fora do horário de uso: primeiro a vm-banco, aguarde o PostgreSQL voltar, depois a vm-apps. Confira as aplicações após o reinício (etapa 20).</p>
+<h3>Mensal</h3>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Restaurar um backup de banco num banco temporário (etapa 13.3).</label></li>
+<li><label><input class="task-check" type="checkbox">Conferir no Proxmox Backup Server que os backups das duas VMs estão concluídos, e testar a restauração de uma VM como cópia, com outro ID e rede desconectada.</label></li>
+<li><label><input class="task-check" type="checkbox">Apagar snapshots antigos das VMs no Proxmox.</label></li></ul>
+<p>Estas caixas mensais registram a primeira execução; nos meses seguintes, use a sua agenda ou planilha de controle.</p>
+</section>
+
+<section class="step" id="etapa-26">
+<h2>26. Diagnóstico rápido quando algo falhar</h2>
+<table><tr><th>Sintoma</th><th>Comando/checagem inicial</th><th>Próximo passo</th></tr>
+<tr><td>Perdi o acesso SSH</td><td>Console do Proxmox: <code>sudo ufw status</code>, <code>sudo fail2ban-client status sshd</code>.</td><td>Corrija a regra do UFW ou desbloqueie com <code>fail2ban-client set sshd unbanip &lt;IP&gt;</code>. Reveja a etapa 7.</td></tr>
+<tr><td>502 Bad Gateway no navegador</td><td><code>sudo -iu apps pm2 status</code> e <code>curl -i http://127.0.0.1:&lt;porta&gt;/</code></td><td>Aplicação parada ou em porta diferente da do Nginx. Leia <code>pm2 logs &lt;app&gt;</code>.</td></tr>
+<tr><td>Aplicação reinicia sem parar (<code>errored</code>)</td><td><code>sudo -iu apps pm2 logs &lt;app&gt; --lines 50 --nostream</code></td><td>Variável faltando no <code>.env</code>, caminho de <code>script</code> errado ou falha de banco.</td></tr>
+<tr><td>Timeout ao conectar no banco</td><td>Na vm-banco: <code>sudo ufw status</code> e <code>sudo ss -lntp | grep 5432</code></td><td>Libere 5432 para <code>&lt;IP_VM_APPS&gt;</code> ou corrija <code>listen_addresses</code> e reinicie o PostgreSQL.</td></tr>
+<tr><td><code>no pg_hba.conf entry for host</code></td><td>Confira banco, usuário e IP na mensagem.</td><td>Ajuste a linha no <code>pg_hba.conf</code> e <code>sudo systemctl reload postgresql</code>.</td></tr>
+<tr><td><code>password authentication failed</code></td><td>Teste com <code>psql</code> (etapa 15.2).</td><td>Senha errada no <code>.env</code>. Para redefinir: <code>sudo -u postgres psql -c "\password estoque_user"</code>.</td></tr>
+<tr><td><code>self-signed certificate</code> na aplicação</td><td>Veja o <code>sslmode</code> no <code>DATABASE_URL</code>.</td><td>Use <code>sslmode=no-verify</code> com a biblioteca <code>pg</code> (etapa 18.3).</td></tr>
+<tr><td>Certbot falha na validação</td><td><code>resolvectl query &lt;app&gt;.&lt;DOMINIO&gt;</code> e teste pelo celular via <code>http://</code></td><td>DNS ainda não propagou ou porta 80 não está encaminhada para a vm-apps.</td></tr>
+<tr><td>Funciona pelo celular, não dentro da empresa</td><td>Teste de um computador interno.</td><td>Ative NAT loopback no roteador ou use DNS interno (etapa 21.4).</td></tr>
+<tr><td>403 Forbidden no site estático</td><td><code>sudo -u www-data test -r /srv/apps/&lt;app&gt;/index.html &amp;&amp; echo ok</code></td><td>Confira o <code>root</code> do site e as permissões da pasta.</td></tr>
+<tr><td>Aplicações não sobem após reinício</td><td><code>systemctl status pm2-apps</code></td><td>Execute <code>pm2 save</code> como <code>apps</code>; se o serviço não existir, refaça o <code>pm2 startup</code> (etapa 16.2).</td></tr>
+<tr><td>Disco cheio</td><td><code>df -h</code> e <code>sudo du -xh / --max-depth=2 | sort -h | tail -20</code></td><td>Verifique logs e backups. Para aumentar: disco no Proxmox, depois <code>growpart</code>, <code>pvresize</code> e <code>lvextend -r</code>.</td></tr>
+<tr><td>Nginx não recarrega</td><td><code>sudo nginx -t</code></td><td>A mensagem indica arquivo e linha do erro. Corrija e teste de novo.</td></tr></table>
+<p>Onde ficam os registros (logs):</p>
+<pre><code>sudo -iu apps pm2 logs &lt;app&gt; --lines 100 --nostream        # aplicações Node.js
+sudo tail -n 50 /var/log/nginx/&lt;app&gt;.error.log              # Nginx por site
+sudo journalctl -u postgresql@$(ls /etc/postgresql/)-main -n 50 --no-pager   # PostgreSQL (vm-banco)
+sudo journalctl -p err -b --no-pager                         # erros do sistema desde o boot</code></pre>
+</section>
+
+<section class="step" id="etapa-27">
+<h2>27. Checklist final</h2>
+<p>Marque cada item depois de conferir. Com tudo marcado, a infraestrutura está pronta para uso.</p>
+<h3>Proxmox e sistema</h3><ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Duas VMs com início automático, agente QEMU ativo e IP fixo.</label></li>
+<li><label><input class="task-check" type="checkbox">Ubuntu atualizado, fuso correto e atualizações automáticas ativas nas duas VMs.</label></li>
+<li><label><input class="task-check" type="checkbox">SSH só por chave, sem root, aceito só da rede interna; fail2ban ativo.</label></li>
+<li><label><input class="task-check" type="checkbox">Backups das duas VMs no Proxmox Backup Server, com restauração testada.</label></li></ul>
+<h3>vm-banco</h3><ul class="task-list">
+<li><label><input class="task-check" type="checkbox">PostgreSQL acessível apenas pela vm-apps, somente com conexão cifrada.</label></li>
+<li><label><input class="task-check" type="checkbox">Um banco e um usuário sem privilégios por aplicação; senhas no cofre.</label></li>
+<li><label><input class="task-check" type="checkbox">Backup diário com pg_dump funcionando e restauração testada.</label></li></ul>
+<h3>vm-apps</h3><ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Aplicações rodando como usuário <code>apps</code>, com <code>.env</code> em modo 600.</label></li>
+<li><label><input class="task-check" type="checkbox">PM2 sobe as aplicações após reinício; rotação de logs ativa.</label></li>
+<li><label><input class="task-check" type="checkbox">Nginx com bloqueio de nomes desconhecidos e de arquivos ocultos.</label></li>
+<li><label><input class="task-check" type="checkbox">HTTPS em todos os sites, redirecionamento de HTTP e renovação testada.</label></li>
+<li><label><input class="task-check" type="checkbox">Roteador encaminha somente 80 e 443, somente para a vm-apps.</label></li>
+<li><label><input class="task-check" type="checkbox">Todas as aplicações expostas na internet exigem login.</label></li></ul>
+<div class="note">Próximos passos, quando estiver confortável: monitoramento simples de disponibilidade (um serviço externo que avisa se um site cair), automação das atualizações com GitHub Actions e, se as aplicações crescerem, avaliar Docker.</div>
+</section>
+
+<section class="step" id="etapa-28">
+<h2>28. Referências oficiais</h2>
+<ul>
+<li><a href="https://ubuntu.com/server/docs" target="_blank" rel="noopener">Documentação do Ubuntu Server</a> (instalação, OpenSSH, firewall UFW, atualizações automáticas).</li>
+<li><a href="https://netplan.readthedocs.io/" target="_blank" rel="noopener">Netplan — configuração de rede do Ubuntu</a>.</li>
+<li><a href="https://pve.proxmox.com/wiki/Qemu-guest-agent" target="_blank" rel="noopener">Proxmox — QEMU Guest Agent</a>.</li>
+<li><a href="https://pbs.proxmox.com/docs/" target="_blank" rel="noopener">Proxmox Backup Server — documentação</a>.</li>
+<li><a href="https://www.postgresql.org/docs/current/auth-pg-hba-conf.html" target="_blank" rel="noopener">PostgreSQL — arquivo pg_hba.conf</a>.</li>
+<li><a href="https://www.postgresql.org/docs/current/app-pgdump.html" target="_blank" rel="noopener">PostgreSQL — pg_dump</a> e <a href="https://www.postgresql.org/docs/current/app-pgrestore.html" target="_blank" rel="noopener">pg_restore</a>.</li>
+<li><a href="https://github.com/nodesource/distributions" target="_blank" rel="noopener">NodeSource — repositórios do Node.js para Ubuntu</a>.</li>
+<li><a href="https://pm2.keymetrics.io/docs/usage/startup/" target="_blank" rel="noopener">PM2 — inicialização automática</a> e <a href="https://pm2.keymetrics.io/docs/usage/application-declaration/" target="_blank" rel="noopener">arquivo ecosystem</a>.</li>
+<li><a href="https://nginx.org/en/docs/" target="_blank" rel="noopener">Nginx — documentação</a>.</li>
+<li><a href="https://certbot.eff.org/instructions?os=snap&amp;ws=nginx" target="_blank" rel="noopener">Certbot — instalação com Snap e Nginx</a>.</li>
+<li><a href="https://github.com/fail2ban/fail2ban" target="_blank" rel="noopener">fail2ban — projeto oficial</a>.</li>
+</ul>
+<p>Endereços, versões e telas de instalação podem mudar. Confirme as instruções oficiais no dia da montagem, principalmente a versão LTS do Node.js e o instalador do Ubuntu 26.04.</p>
+</section>
+</main>
+
+<footer>
+<p><strong>Documento:</strong> Guia Passo a Passo — Montagem dos servidores Ubuntu</p>
+<p><strong>Ambiente:</strong> Proxmox / Ubuntu Server 26.04 LTS / Nginx / Node.js 24 LTS / PM2 / PostgreSQL / Certbot</p>
+<p>As marcações interativas ficam no armazenamento local do navegador; não são enviadas ao servidor nem incluídas ao imprimir.</p>
+</footer>
+</div>
+<script>
+(function(){
+  const storageKey='empresa.guia.servidores.passo-a-passo.v1';
+  const checks=Array.from(document.querySelectorAll('input.task-check'));
+  document.querySelectorAll('section.step').forEach(function(section,index){
+    const heading=section.querySelector('h2');
+    const label=document.createElement('label');
+    label.className='step-check';
+    label.innerHTML='<input type="checkbox" class="task-check section-task" aria-label="Marcar etapa concluída"><span>Marcar esta etapa como concluída</span>';
+    heading.insertAdjacentElement('afterend',label);
+  });
+  const allChecks=Array.from(document.querySelectorAll('input.task-check'));
+  allChecks.forEach(function(box,index){if(!box.id)box.id='check-'+(index+1);});
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')||{};}catch(_error){saved={};}
+  allChecks.forEach(function(box){box.checked=saved[box.id]===true;box.addEventListener('change',update);});
+  function update(){
+    const state={};
+    allChecks.forEach(function(box){state[box.id]=box.checked;});
+    try{localStorage.setItem(storageKey,JSON.stringify(state));}catch(_error){}
+    const done=allChecks.filter(function(box){return box.checked;}).length;
+    const percent=allChecks.length?Math.round(done/allChecks.length*100):0;
+    document.getElementById('progressFill').style.width=percent+'%';
+    document.getElementById('progressText').textContent=done+' de '+allChecks.length+' marcações concluídas';
+    document.getElementById('progressPercent').textContent=percent+'%';
+    document.querySelectorAll('section.step').forEach(function(section){
+      const sectionBox=section.querySelector('.section-task');
+      section.classList.toggle('done',!!sectionBox&&sectionBox.checked);
+    });
+  }
+  document.getElementById('resetProgress').addEventListener('click',function(){
+    if(!window.confirm('Apagar todas as marcações salvas neste navegador?'))return;
+    allChecks.forEach(function(box){box.checked=false;});
+    try{localStorage.removeItem(storageKey);}catch(_error){}
+    update();
+  });
+  update();
+})();
+</script>
+</body>
+</html>

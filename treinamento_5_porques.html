@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Treinamento: Método dos 5 Porquês</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --l1:#EFE6D4;
+    --l2:#DEC7A2;
+    --l3:#C6A276;
+    --l4:#A17D53;
+    --l5:#6E4E34;
+    --gold:#C99327;
+    --gold-dark:#9E720F;
+    --ink:#2B241C;
+    --ink-soft:#5C5245;
+    --paper:#FBF7EF;
+    --card:#FFFFFF;
+    --line:#E6DCC6;
+    --step2:#4A6B63;
+    --step2-soft:#E7EEEC;
+    --step3:#7A4B32;
+    --step3-soft:#F3E7DD;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 .4em 0;
+    line-height:1.15;
+  }
+  a{color:var(--gold-dark);}
+  .layout{
+    display:grid;
+    grid-template-columns:230px minmax(0,760px);
+    gap:56px;
+    max-width:1100px;
+    margin:0 auto;
+    padding:48px 24px 100px;
+    align-items:start;
+  }
+  nav.rail{
+    position:sticky;
+    top:32px;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  nav.rail .rail-title{
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:14px;
+    padding-left:26px;
+  }
+  nav.rail a{
+    position:relative;
+    text-decoration:none;
+    color:var(--ink-soft);
+    font-size:14.5px;
+    font-weight:500;
+    padding:9px 10px 9px 26px;
+    border-radius:8px;
+    transition:background .15s ease, color .15s ease;
+  }
+  nav.rail a::before{
+    content:"";
+    position:absolute;
+    left:8px;
+    top:50%;
+    transform:translateY(-50%);
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--line);
+    border:2px solid var(--paper);
+    box-shadow:0 0 0 1px var(--line);
+  }
+  nav.rail a::after{
+    content:"";
+    position:absolute;
+    left:11.5px;
+    top:100%;
+    width:1.5px;
+    height:10px;
+    background:var(--line);
+  }
+  nav.rail a:last-child::after{display:none;}
+  nav.rail a[data-depth="1"]::before{background:var(--l1);}
+  nav.rail a[data-depth="2"]::before{background:var(--l2);}
+  nav.rail a[data-depth="3"]::before{background:var(--l3);}
+  nav.rail a[data-depth="4"]::before{background:var(--l4);}
+  nav.rail a[data-depth="5"]::before{background:var(--l5);}
+  nav.rail a[data-depth="6"]::before{background:var(--gold);}
+  nav.rail a[data-depth="7"]::before{background:var(--ink-soft);}
+  nav.rail a[data-depth="8"]::before{background:var(--step2);}
+  nav.rail a[data-depth="9"]::before{background:var(--step3);}
+  nav.rail a[data-depth="10"]::before{background:var(--gold-dark);}
+  nav.rail a[data-depth="11"]::before{background:var(--ink);}
+  nav.rail a:hover{background:#F0E9D8;color:var(--ink);}
+  nav.rail a.active{background:var(--ink);color:#fff;}
+  nav.rail a.active::before{box-shadow:0 0 0 1px var(--ink);}
+
+  main{min-width:0;}
+  section{margin-bottom:76px;scroll-margin-top:28px;}
+  section:last-of-type{margin-bottom:24px;}
+
+  .hero{margin-bottom:48px;}
+  .hero h1{font-size:42px;max-width:16ch;}
+  .hero p.lede{
+    font-size:18px;
+    color:var(--ink-soft);
+    max-width:58ch;
+    margin-top:14px;
+  }
+  .hero-visual{
+    margin-top:36px;
+    border-radius:14px;
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .hero-visual svg{display:block;width:100%;height:auto;}
+
+  .kicker{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-bottom:18px;
+  }
+  .kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);}
+
+  p{margin:0 0 14px 0;}
+  .section-intro{
+    font-size:16.5px;
+    color:var(--ink-soft);
+    max-width:60ch;
+    margin-bottom:26px;
+  }
+
+  /* meta info da ficha do treinamento */
+  .meta-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-top:28px;
+  }
+  .meta-item{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+  .meta-item h4{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    text-transform:none;
+    color:var(--ink-soft);
+    margin:0 0 4px 0;
+  }
+  .meta-item p{font-size:14.5px;margin:0;font-weight:600;}
+
+  .prep-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-top:8px;
+  }
+  .prep-item{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px 18px;
+  }
+  .prep-item h4{
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    font-weight:600;
+    margin:0 0 5px 0;
+  }
+  .prep-item p{font-size:14px;color:var(--ink-soft);margin:0;}
+
+  .step-head{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+  }
+  .step-num{
+    font-family:'Fraunces',serif;
+    font-size:15px;
+    font-weight:600;
+    color:#fff;
+    background:var(--ink-soft);
+    padding:3px 11px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .duration{
+    font-size:13px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  section#m1 .step-num{background:var(--l3);}
+  section#m2 .step-num{background:var(--l4);}
+  section#m3 .step-num{background:var(--l5);}
+  section#m4 .step-num{background:var(--gold);}
+  section#m5 .step-num{background:#B5502F;}
+  section#m6 .step-num{background:var(--step2);}
+  section#m7 .step-num{background:var(--step3);}
+  .step-head h2{font-size:27px;}
+
+  /* citação / pergunta para o grupo */
+  .group-question{
+    display:flex;
+    gap:9px;
+    align-items:flex-start;
+    background:var(--l1);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:14px 16px;
+    font-size:15px;
+    color:var(--ink);
+    margin:8px 0 20px 0;
+  }
+  .group-question .ico{flex:none;line-height:1;font-size:15px;margin-top:1px;}
+
+  /* correção vs ação corretiva */
+  .contrast{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin:20px 0;
+  }
+  .contrast-item{
+    border-radius:12px;
+    padding:16px 18px;
+    border:1px solid var(--line);
+  }
+  .contrast-item.weak{background:#FBF0EC;border-color:#EEC9BE;}
+  .contrast-item.strong{background:var(--step2-soft);border-color:#CFE0DB;}
+  .contrast-item h4{font-family:'Fraunces',serif;font-size:15.5px;margin:0 0 6px 0;}
+  .contrast-item.weak h4{color:#B5502F;}
+  .contrast-item.strong h4{color:#2F4A43;}
+  .contrast-item p{font-size:14px;margin:0;color:var(--ink-soft);}
+
+  /* cadeia de porquês */
+  .chain{margin:22px 0 8px 0;}
+  .chain-item{
+    display:grid;
+    grid-template-columns:38px 1fr;
+    gap:14px;
+    position:relative;
+    padding-bottom:22px;
+  }
+  .chain-item::before{
+    content:"";
+    position:absolute;
+    left:18px;
+    top:34px;
+    bottom:-4px;
+    width:2px;
+    background:var(--line);
+  }
+  .chain-item:last-child::before{display:none;}
+  .chain-num{
+    width:36px;height:36px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    color:#fff;
+    font-size:14px;
+    flex:none;
+  }
+  .chain-item[data-n="1"] .chain-num{background:var(--l1);color:var(--ink);}
+  .chain-item[data-n="2"] .chain-num{background:var(--l2);color:var(--ink);}
+  .chain-item[data-n="3"] .chain-num{background:var(--l3);color:#fff;}
+  .chain-item[data-n="4"] .chain-num{background:var(--l4);}
+  .chain-item[data-n="5"] .chain-num{background:var(--l5);}
+  .chain-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+  .chain-card .q{font-family:'Fraunces',serif;font-size:15.5px;font-weight:600;margin:0 0 4px 0;}
+  .chain-card .a{font-size:14.5px;color:var(--ink-soft);margin:0;}
+  .root-flag{
+    margin-top:6px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:#FBF2DD;
+    border:1px solid #EAD9AC;
+    border-radius:9px;
+    padding:14px 16px;
+    font-size:15px;
+    color:#5C4409;
+  }
+  .root-flag b{color:#4A3308;}
+
+  /* field cards (usadas nos 6 passos) */
+  .field{
+    display:grid;
+    grid-template-columns:190px 1fr;
+    gap:22px;
+    padding:20px 0;
+    border-top:1px solid var(--line);
+  }
+  .field:last-child{border-bottom:1px solid var(--line);}
+  .field-name{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:16.5px;
+    padding-top:1px;
+  }
+  .field-body p{font-size:15px;margin:0 0 10px 0;}
+  .tip{
+    display:flex;
+    gap:9px;
+    align-items:flex-start;
+    background:#FBF2DD;
+    border:1px solid #EAD9AC;
+    border-radius:9px;
+    padding:10px 13px;
+    font-size:13.5px;
+    color:#7A5B0E;
+  }
+  .tip b{color:#5C4409;}
+  .tip .ico{flex:none;line-height:1;font-size:14px;margin-top:1px;}
+
+  section#m6 .tip{background:var(--step2-soft);border-color:#CFE0DB;color:#2F4A43;}
+  section#m6 .tip b{color:#233933;}
+  section#m7 .tip{background:var(--step3-soft);border-color:#E6CBB5;color:#5C3B26;}
+  section#m7 .tip b{color:#40281A;}
+
+  /* checklist */
+  .checklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;}
+  .checklist li{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:13px 16px;
+    font-size:14.5px;
+  }
+  .checklist li .box{
+    flex:none;
+    width:18px;height:18px;
+    border-radius:5px;
+    border:2px solid var(--gold);
+    margin-top:1px;
+  }
+
+  /* mistakes */
+  .mistakes{display:flex;flex-direction:column;gap:10px;}
+  .mistake{
+    display:grid;
+    grid-template-columns:26px 1fr;
+    gap:12px;
+    background:#FBF0EC;
+    border:1px solid #EEC9BE;
+    border-radius:10px;
+    padding:13px 16px;
+  }
+  .mistake .x{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    color:#B5502F;
+    font-size:16px;
+  }
+  .mistake p{margin:0;font-size:14.5px;color:#5E3323;}
+  .mistake b{color:#4A2A1D;}
+  .mistake .how{
+    display:block;
+    margin-top:6px;
+    font-size:13.5px;
+    color:#7A5B0E;
+  }
+  .mistake .how b{color:#5C4409;}
+
+  /* exercício em grupo */
+  .problem-list{
+    list-style:none;
+    margin:14px 0 0 0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .problem-list li{
+    background:var(--step2-soft);
+    border:1px solid #CFE0DB;
+    border-radius:9px;
+    padding:11px 15px;
+    font-size:14.5px;
+    color:#2F4A43;
+  }
+  .steps-num{
+    list-style:none;
+    margin:14px 0 0 0;
+    padding:0;
+    counter-reset:stepnum;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .steps-num li{
+    counter-increment:stepnum;
+    position:relative;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 16px 12px 46px;
+    font-size:14.5px;
+  }
+  .steps-num li::before{
+    content:counter(stepnum);
+    position:absolute;
+    left:12px;
+    top:10px;
+    width:22px;height:22px;
+    border-radius:50%;
+    background:var(--step2);
+    color:#fff;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:12.5px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* resumo numerado */
+  .summary-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    counter-reset:sumnum;
+  }
+  .summary-list li{
+    counter-increment:sumnum;
+    display:flex;
+    gap:14px;
+    align-items:center;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:15.5px;
+    font-family:'Fraunces',serif;
+    font-weight:500;
+  }
+  .summary-list li::before{
+    content:counter(sumnum);
+    flex:none;
+    width:30px;height:30px;
+    border-radius:50%;
+    background:var(--gold);
+    color:#fff;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* avaliação */
+  .quiz-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .quiz-list li{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    font-size:15px;
+  }
+  .quiz-list .qnum{
+    display:inline-block;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    color:var(--gold-dark);
+    margin-right:6px;
+  }
+
+  footer{
+    margin-top:60px;
+    padding-top:22px;
+    border-top:1px solid var(--line);
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;padding:24px 18px 80px;gap:22px;}
+    nav.rail{
+      position:sticky;
+      top:0;
+      background:var(--paper);
+      z-index:5;
+      flex-direction:row;
+      overflow-x:auto;
+      gap:6px;
+      padding:12px 0;
+      border-bottom:1px solid var(--line);
+      margin:-24px -18px 8px -18px;
+      padding-left:18px;
+      padding-right:18px;
+    }
+    nav.rail .rail-title{display:none;}
+    nav.rail a{
+      white-space:nowrap;
+      padding:7px 12px;
+      background:#FFFFFF;
+      border:1px solid var(--line);
+    }
+    nav.rail a::before, nav.rail a::after{display:none;}
+    nav.rail a.active{background:var(--ink);}
+    .hero h1{font-size:32px;}
+    .field{grid-template-columns:1fr;gap:8px;}
+    .prep-grid, .contrast, .meta-grid{grid-template-columns:1fr;}
+    .chain-item{grid-template-columns:32px 1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <nav class="rail" id="rail">
+    <span class="rail-title">Neste treinamento</span>
+    <a href="#inicio" data-depth="1">Início</a>
+    <a href="#ficha" data-depth="2">Ficha do treinamento</a>
+    <a href="#m1" data-depth="3">Módulo 1 · Por quê importa</a>
+    <a href="#m2" data-depth="4">Módulo 2 · O que são</a>
+    <a href="#m3" data-depth="5">Módulo 3 · Como aplicar</a>
+    <a href="#m4" data-depth="6">Módulo 4 · Exemplo prático</a>
+    <a href="#m5" data-depth="7">Módulo 5 · Erros comuns</a>
+    <a href="#m6" data-depth="8">Módulo 6 · Exercício</a>
+    <a href="#m7" data-depth="9">Módulo 7 · Checklist</a>
+    <a href="#resumo" data-depth="10">Resumo em 5 frases</a>
+    <a href="#avaliacao" data-depth="11">Avaliação rápida</a>
+  </nav>
+
+  <main>
+
+    <section id="inicio" class="hero">
+      <span class="kicker"><span class="dot"></span>Treinamento interno</span>
+      <h1>Método dos 5 Porquês</h1>
+      <p class="lede">Quando só tratamos o problema que apareceu, ele volta — é como enxugar o chão sem consertar a goteira. Este treinamento ensina a perguntar "por quê?" até chegar à causa que, eliminada, impede a repetição do problema, e a transformar essa causa em uma ação corretiva de verdade.</p>
+
+      <figure class="hero-visual">
+        <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="760" height="300" fill="#FBF7EF"/>
+          <rect x="0" y="0" width="760" height="46" fill="var(--l1)"/>
+          <rect x="0" y="46" width="760" height="46" fill="var(--l2)"/>
+          <rect x="0" y="92" width="760" height="46" fill="var(--l3)"/>
+          <rect x="0" y="138" width="760" height="46" fill="var(--l4)"/>
+          <rect x="0" y="184" width="760" height="56" fill="var(--l5)"/>
+          <text x="34" y="28" font-family="Inter" font-size="14" font-weight="600" fill="#5C4A2E">Problema (sintoma)</text>
+          <text x="34" y="74" font-family="Inter" font-size="13" fill="#5C4A2E">Por quê 1</text>
+          <text x="34" y="120" font-family="Inter" font-size="13" fill="#4A3B24">Por quê 2 · Por quê 3</text>
+          <text x="34" y="166" font-family="Inter" font-size="13" fill="#F3E9DA">Por quê 4</text>
+          <text x="34" y="217" font-family="Inter" font-size="14" font-weight="600" fill="#F3E9DA">Por quê 5</text>
+          <circle cx="670" cy="212" r="22" fill="var(--gold)"/>
+          <text x="670" y="217" font-family="Inter" font-size="11.5" font-weight="700" fill="#4A3308" text-anchor="middle">RAIZ</text>
+          <line x1="0" y1="240" x2="760" y2="240" stroke="var(--line)" stroke-width="1"/>
+          <text x="34" y="266" font-family="Inter" font-size="12.5" fill="var(--ink-soft)">O 5 é uma referência — às vezes a causa aparece no 3º porquê, às vezes só no 6º.</text>
+        </svg>
+      </figure>
+    </section>
+
+    <section id="ficha">
+      <div class="step-head"><h2>Ficha do treinamento</h2></div>
+      <p class="section-intro">Ao final, o colaborador saberá aplicar os 5 Porquês para encontrar a causa real de um problema e definir ações que a eliminem.</p>
+      <div class="meta-grid">
+        <div class="meta-item"><h4>Duração</h4><p>45 a 60 minutos</p></div>
+        <div class="meta-item"><h4>Público</h4><p>Times envolvidos em análise de problemas e ações corretivas</p></div>
+        <div class="meta-item"><h4>Formato</h4><p>Explicação + exemplo + exercício em grupo</p></div>
+        <div class="meta-item"><h4>Base normativa</h4><p>ISO 9001:2015, cláusula 10.2</p></div>
+      </div>
+    </section>
+
+    <section id="m1">
+      <div class="step-head"><span class="step-num">Módulo 1</span><h2>Por que isso importa?</h2><span class="duration">5 min</span></div>
+      <p class="section-intro">Corrigir o sintoma resolve o problema de hoje. Só a causa raiz impede que ele volte amanhã.</p>
+
+      <div class="contrast">
+        <div class="contrast-item weak">
+          <h4>Correção</h4>
+          <p>Resolve o problema de hoje — trata o que apareceu na superfície, sem mudar o que o gerou.</p>
+        </div>
+        <div class="contrast-item strong">
+          <h4>Ação corretiva</h4>
+          <p>Elimina a causa para que o problema não se repita (ISO 9001:2015, cláusula 10.2).</p>
+        </div>
+      </div>
+
+      <div class="group-question">
+        <span class="ico">💬</span>
+        <span><b>Pergunta para o grupo:</b> "Já tivemos um problema que voltou a acontecer? Por quê?"</span>
+      </div>
+    </section>
+
+    <section id="m2">
+      <div class="step-head"><span class="step-num">Módulo 2</span><h2>O que são os 5 Porquês?</h2><span class="duration">5 min</span></div>
+      <p class="section-intro">É perguntar "por quê?" repetidamente, geralmente cinco vezes, até chegar à causa que, se eliminada, impede a repetição do problema.</p>
+
+      <div class="root-flag">
+        <span>⛏️</span>
+        <span>Problema → <b>Por quê?</b> → <b>Por quê?</b> → <b>Por quê?</b> → <b>Por quê?</b> → <b>Por quê?</b> → Causa raiz</span>
+      </div>
+
+      <div class="tip" style="margin-top:16px;">
+        <span class="ico">💡</span>
+        <span><b>Importante:</b> o número 5 é uma referência, não uma regra fixa. Às vezes a causa aparece no 3º porquê, às vezes só no 6º.</span>
+      </div>
+    </section>
+
+    <section id="m3">
+      <div class="step-head"><span class="step-num">Módulo 3</span><h2>Como aplicar, em 6 passos</h2><span class="duration">10 min</span></div>
+      <p class="section-intro">A sequência que transforma a pergunta "por quê?" em uma investigação de verdade — sem pular etapas.</p>
+
+      <div class="field">
+        <div class="field-name">Passo 1</div>
+        <div class="field-body">
+          <p>Descreva o problema com fatos: o quê, onde, quando e quanto.</p>
+          <div class="tip"><span class="ico">💡</span><span><b>Dica:</b> "atrasou 3 dias" é fato; "atrasou porque ninguém teve cuidado" já é conclusão — isso vem depois, não na descrição inicial.</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Passo 2</div>
+        <div class="field-body">
+          <p>Reúna quem conhece o processo: quem faz o trabalho vê o que a chefia não vê.</p>
+          <div class="tip"><span class="ico">💡</span><span><b>Dica:</b> inclua também alguém de fora da área — um olhar neutro questiona respostas que o time já naturalizou.</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Passo 3</div>
+        <div class="field-body">
+          <p>Pergunte "por que isso aconteceu?" e responda com fatos.</p>
+          <div class="tip"><span class="ico">💡</span><span><b>Dica:</b> desconfie de respostas como "falta de atenção" ou "falha humana" — quase nunca são a causa raiz. Continue perguntando.</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Passo 4</div>
+        <div class="field-body">
+          <p>Confirme cada resposta com evidência: registro, documento, observação.</p>
+          <div class="tip"><span class="ico">💡</span><span><b>Dica:</b> se não há evidência, a resposta é palpite — volte e investigue antes de avançar para o próximo "por quê".</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Passo 5</div>
+        <div class="field-body">
+          <p>Repita a pergunta usando a resposta anterior como novo problema.</p>
+          <div class="tip"><span class="ico">💡</span><span><b>Dica:</b> se houver mais de uma causa possível em uma resposta, abra ramificações em vez de seguir só um caminho.</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Passo 6</div>
+        <div class="field-body">
+          <p>Pare quando chegar a uma falha do processo ou do sistema que, se corrigida, evita a repetição.</p>
+          <div class="tip"><span class="ico">💡</span><span><b>Teste final:</b> leia a cadeia de baixo para cima encaixando "portanto" entre as frases — se fizer sentido lógico, a causa está correta.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="m4">
+      <div class="step-head"><span class="step-num">Módulo 4</span><h2>Exemplo prático</h2><span class="duration">10 min</span></div>
+      <p class="section-intro"><b>Problema:</b> o cliente recebeu o pedido com 3 dias de atraso.</p>
+
+      <div class="chain">
+        <div class="chain-item" data-n="1">
+          <div class="chain-num">1</div>
+          <div class="chain-card">
+            <p class="q">Por que o pedido atrasou?</p>
+            <p class="a">Ficou parado na expedição aguardando a nota fiscal.</p>
+          </div>
+        </div>
+        <div class="chain-item" data-n="2">
+          <div class="chain-num">2</div>
+          <div class="chain-card">
+            <p class="q">Por que aguardou a nota fiscal?</p>
+            <p class="a">O faturamento só emitiu a nota 2 dias depois de receber o pedido.</p>
+          </div>
+        </div>
+        <div class="chain-item" data-n="3">
+          <div class="chain-num">3</div>
+          <div class="chain-card">
+            <p class="q">Por que o faturamento demorou?</p>
+            <p class="a">O pedido chegou sem o código do cliente preenchido.</p>
+          </div>
+        </div>
+        <div class="chain-item" data-n="4">
+          <div class="chain-num">4</div>
+          <div class="chain-card">
+            <p class="q">Por que chegou sem o código?</p>
+            <p class="a">O campo não é obrigatório no formulário de venda.</p>
+          </div>
+        </div>
+        <div class="chain-item" data-n="5">
+          <div class="chain-num">5</div>
+          <div class="chain-card">
+            <p class="q">Por que o campo não é obrigatório?</p>
+            <p class="a">O formulário nunca foi revisado desde a criação do processo.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="root-flag">
+        <span>🎯</span>
+        <span><b>Causa raiz:</b> falha no formulário de venda, que permite o envio de pedidos incompletos.</span>
+      </div>
+
+      <div class="contrast" style="margin-top:20px;">
+        <div class="contrast-item strong">
+          <h4>Ação corretiva</h4>
+          <p>Tornar o campo obrigatório e revisar o formulário — ataca diretamente a causa raiz.</p>
+        </div>
+        <div class="contrast-item weak">
+          <h4>Ação que NÃO resolveria</h4>
+          <p>"Avisar o time de vendas para ter mais atenção" — não muda o processo, o problema volta.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="m5">
+      <div class="step-head"><span class="step-num">Módulo 5</span><h2>Erros comuns</h2><span class="duration">5 min</span></div>
+      <p class="section-intro">Os mesmos erros aparecem em quase toda análise mal feita. Reconhecê-los evita que a equipe pare cedo demais ou culpe a pessoa errada.</p>
+
+      <div class="mistakes">
+        <div class="mistake">
+          <span class="x">×</span>
+          <div>
+            <p><b>Parar cedo demais.</b> Exemplo: "faltou atenção".</p>
+            <span class="how"><b>Como evitar:</b> pergunte "por que faltou atenção?" e continue a cadeia.</span>
+          </div>
+        </div>
+        <div class="mistake">
+          <span class="x">×</span>
+          <div>
+            <p><b>Culpar pessoas.</b> Exemplo: "o João errou".</p>
+            <span class="how"><b>Como evitar:</b> pergunte "o que no processo permitiu o erro?".</span>
+          </div>
+        </div>
+        <div class="mistake">
+          <span class="x">×</span>
+          <div>
+            <p><b>Responder com opinião.</b> Exemplo: "acho que foi o prazo curto".</p>
+            <span class="how"><b>Como evitar:</b> peça evidência antes de aceitar a resposta.</span>
+          </div>
+        </div>
+        <div class="mistake">
+          <span class="x">×</span>
+          <div>
+            <p><b>Seguir só um caminho.</b> Exemplo: ignorar outras causas possíveis.</p>
+            <span class="how"><b>Como evitar:</b> abra ramificações se houver mais de uma resposta.</span>
+          </div>
+        </div>
+        <div class="mistake">
+          <span class="x">×</span>
+          <div>
+            <p><b>Ação sem relação com a causa.</b> Exemplo: causa é formulário falho, mas a ação proposta é treinamento.</p>
+            <span class="how"><b>Como evitar:</b> cada ação deve atacar uma causa específica.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tip" style="margin-top:18px;">
+        <span class="ico">⚠️</span>
+        <span><b>Atenção:</b> as respostas "falta de treinamento", "falha humana" e "falta de atenção" quase nunca são causa raiz. Continue perguntando.</span>
+      </div>
+    </section>
+
+    <section id="m6">
+      <div class="step-head"><span class="step-num">Módulo 6</span><h2>Exercício em grupo</h2><span class="duration">15 a 20 min</span></div>
+      <p class="section-intro">Divida a turma em grupos de 3 a 5 pessoas. Cada grupo recebe um problema real ou simulado, por exemplo:</p>
+
+      <ul class="problem-list">
+        <li>Um produto foi entregue com a especificação errada.</li>
+        <li>Um equipamento parou por falta de manutenção.</li>
+        <li>Um registro obrigatório foi preenchido de forma incompleta.</li>
+      </ul>
+
+      <p class="section-intro" style="margin-top:22px;">Cada grupo deve:</p>
+      <ol class="steps-num">
+        <li>Descrever o problema com fatos.</li>
+        <li>Aplicar os 5 Porquês, anotando a evidência de cada resposta.</li>
+        <li>Identificar a causa raiz.</li>
+        <li>Propor uma ação para cada causa.</li>
+        <li>Apresentar em 2 minutos.</li>
+      </ol>
+    </section>
+
+    <section id="m7">
+      <div class="step-head"><span class="step-num">Módulo 7</span><h2>Checklist de qualidade da análise</h2><span class="duration">5 min</span></div>
+      <p class="section-intro">Antes de concluir qualquer análise, passe por esta lista com o grupo:</p>
+      <ul class="checklist">
+        <li><span class="box"></span>O problema está descrito com fatos?</li>
+        <li><span class="box"></span>Cada resposta tem evidência?</li>
+        <li><span class="box"></span>A causa aponta para o processo, e não para uma pessoa?</li>
+        <li><span class="box"></span>Se eliminarmos essa causa, o problema deixa de acontecer?</li>
+        <li><span class="box"></span>Cada ação está ligada a uma causa específica?</li>
+        <li><span class="box"></span>Definimos como verificar se a ação foi eficaz?</li>
+      </ul>
+    </section>
+
+    <section id="resumo">
+      <div class="step-head"><h2>Resumo em 5 frases</h2></div>
+      <p class="section-intro">Para fixar, antes de sair da sala:</p>
+      <ol class="summary-list">
+        <li>Comece pelos fatos.</li>
+        <li>Pergunte por que até chegar ao processo.</li>
+        <li>Evidência, não opinião.</li>
+        <li>Processo, não pessoa.</li>
+        <li>Uma ação para cada causa.</li>
+      </ol>
+    </section>
+
+    <section id="avaliacao">
+      <div class="step-head"><h2>Avaliação rápida</h2></div>
+      <p class="section-intro">Três perguntas para checar se o conteúdo ficou claro:</p>
+      <ol class="quiz-list">
+        <li><span class="qnum">1.</span>Qual a diferença entre correção e ação corretiva?</li>
+        <li><span class="qnum">2.</span>"Falha humana" é uma boa causa raiz? Por quê?</li>
+        <li><span class="qnum">3.</span>Como saber se já chegamos à causa raiz?</li>
+      </ol>
+    </section>
+
+    <footer>
+      Treinamento: Método dos 5 Porquês. Duração 45–60 min · formato explicação + exemplo + exercício em grupo. Adapte os exemplos e problemas do Módulo 6 à realidade da sua área.
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  const links = Array.from(document.querySelectorAll('nav.rail a'));
+  const sections = links.map(l => document.querySelector(l.getAttribute('href')));
+  const setActive = (id) => {
+    links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+  };
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries.filter(e => e.isIntersecting);
+    if (visible.length > 0) {
+      visible.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+      setActive(visible[0].target.id);
+    }
+  }, { rootMargin: '-15% 0px -75% 0px', threshold: [0, 0.25, 0.5, 1] });
+  sections.forEach(s => s && observer.observe(s));
+  links.forEach(l => l.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelector(l.getAttribute('href')).scrollIntoView({behavior:'smooth', block:'start'});
+  }));
+</script>
+</body>
+</html>

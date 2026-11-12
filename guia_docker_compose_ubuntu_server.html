@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia Passo a Passo — Docker Compose no Ubuntu Server 26.04</title>
+<style>
+:root{--bg:#f5f7fa;--card:#fff;--text:#202733;--muted:#5d6878;--border:#dfe4ea;--accent:#1f5f99;--accent2:#eaf3fb;--code:#1e2430;--ok:#137547;--warn:#8a5a00;--bad:#9f2d2d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;line-height:1.6}.container{max-width:1100px;margin:0 auto;padding:32px 22px 60px}header,.progress-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px 32px;margin-bottom:20px}h1{margin:0 0 10px;font-size:30px}h2{margin:42px 0 8px;padding-bottom:8px;border-bottom:2px solid var(--border);color:var(--accent)}h3{color:#34465a;margin-top:28px}p{margin:10px 0}table{width:100%;border-collapse:collapse;margin:18px 0;background:var(--card)}th,td{border:1px solid var(--border);padding:9px 11px;text-align:left;vertical-align:top}th{background:var(--accent2)}pre{background:var(--code);color:#f4f7fb;padding:16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5}code{font-family:Consolas,Monaco,monospace}.note,.warning,.danger{padding:14px 17px;border-radius:8px;margin:16px 0}.note{background:#eef6ff;border-left:4px solid var(--accent)}.warning{background:#fff7e8;border-left:4px solid #c88919}.danger{background:#fff0f0;border-left:4px solid var(--bad)}.cover-meta{color:var(--muted)}.step{padding:1px 20px 20px;margin:18px 0;background:var(--card);border:1px solid var(--border);border-radius:12px}.step h2{margin-top:26px}.step-check{display:flex;align-items:center;gap:9px;margin:12px 0 18px;padding:10px 12px;border-radius:7px;background:#f2f6fa;color:#34465a;font-weight:700}.step-check input,.task-check{width:18px;height:18px;accent-color:var(--ok);flex:none}.task-list{list-style:none;padding:0}.task-list li{margin:7px 0}.task-list label{display:flex;align-items:flex-start;gap:9px}.task-list input{margin-top:4px}.progress-panel{position:sticky;top:8px;z-index:5;box-shadow:0 4px 14px #1c2d4012;padding:14px 20px}.progress-row{display:flex;justify-content:space-between;align-items:center;gap:16px}.progress-track{height:12px;background:#e8edf2;border-radius:10px;overflow:hidden;margin-top:10px}.progress-fill{height:100%;width:0;background:var(--ok);transition:width .2s}.progress-actions{display:flex;align-items:center;gap:12px}.progress-actions button{border:1px solid var(--border);background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer;color:var(--text)}.callout-title{font-weight:700}.muted{color:var(--muted)}.done{color:var(--ok)}footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}a{color:#155b91}li{margin:5px 0}.small{font-size:13px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pill{display:inline-block;padding:2px 8px;background:var(--accent2);border-radius:12px;font-size:12px;color:var(--accent)}
+@media(max-width:700px){.container{padding:14px 10px 35px}header,.progress-panel{padding:18px}.step{padding:1px 14px 16px}.two-col{grid-template-columns:1fr}.progress-row{align-items:flex-start;flex-direction:column}.progress-panel{position:static}}
+@media print{body{background:#fff}.container{max-width:none;padding:0}.progress-panel,.progress-actions{display:none!important}header,.step,table,pre,.note,.warning,.danger{break-inside:avoid;box-shadow:none}.step{border:0;padding:0}.step h2{break-before:page}.step-check input,.task-list input{appearance:none;border:1px solid #333;background:#fff;width:14px;height:14px}.step-check{background:#fff}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Guia Passo a Passo — Docker Compose no Ubuntu Server 26.04</h1>
+<p class="cover-meta"><strong>Objetivo:</strong> instalar o Docker, aprender os comandos básicos do Docker e do Docker Compose, rodar o n8n com PostgreSQL e monitorar tudo com ferramentas leves</p>
+<p class="cover-meta"><strong>Ambiente de referência:</strong> uma VM com Ubuntu Server 26.04 LTS (instalação nova), Docker Engine do repositório oficial da Docker, plugin Docker Compose v2, n8n, PostgreSQL 18 e Dozzle</p>
+<p class="cover-meta"><strong>Perfil:</strong> equipe de TI iniciante em Linux e sem experiência anterior com Docker</p>
+<p class="cover-meta"><strong>Pré-requisito:</strong> acesso <code>sudo</code> na VM e internet liberada. Se a VM ainda não tem SSH seguro e IP fixo, faça antes as etapas 5 a 8 do guia “Montagem dos servidores Ubuntu”.</p>
+<p class="cover-meta"><strong>Versão do guia:</strong> 1.0 · 06/10/2026</p>
+<div class="warning"><span class="callout-title">Atenção:</span> o guia segue em duas fases. As etapas 1 a 22 montam um <strong>laboratório de estudo</strong>, onde é seguro errar e recomeçar. A etapa 23 mostra, item por item, o que muda para levar o mesmo ambiente à <strong>produção</strong>. Não pule a fase de estudo: os mesmos comandos serão usados em produção.</div>
+</header>
+
+<div class="progress-panel" aria-live="polite">
+  <div class="progress-row"><div><strong>Acompanhamento do estudo</strong><div id="progressText" class="small muted">Carregando progresso…</div></div><div class="progress-actions"><span id="progressPercent">0%</span><button type="button" id="resetProgress">Limpar marcações</button></div></div>
+  <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+  <p class="small muted">As marcações são salvas neste navegador e neste perfil de usuário. Use o mesmo arquivo e navegador para continuar. O botão de limpeza apaga somente as marcações locais.</p>
+</div>
+
+<main>
+<section class="step" id="etapa-01">
+<h2>1. Como usar este guia e o que será montado</h2>
+<p>Execute as etapas na ordem. Cada etapa explica o objetivo, apresenta os comandos, diz o que você deve ver e termina com uma validação. Marque a caixa da etapa somente depois de confirmar o resultado.</p>
+<p>Todos os comandos são executados no <strong>terminal da VM</strong> (via SSH ou console do hipervisor). Substitua os valores entre sinais de maior/menor, como <code>&lt;IP_DA_VM&gt;</code>, antes de executar. Não cole os sinais de maior/menor literalmente.</p>
+<p>Arquitetura final do laboratório:</p>
+<pre><code>Seu computador ── SSH ──► VM Ubuntu Server 26.04  (&lt;IP_DA_VM&gt;)
+                          │
+                          ├── Docker Engine (serviço "docker")
+                          │     ├── Projeto n8n   → pasta /opt/stacks/n8n
+                          │     │     ├── n8n        → porta 5678 (editor e webhooks)
+                          │     │     └── postgres   → só visível dentro do projeto
+                          │     └── Projeto dozzle → pasta /opt/stacks/dozzle
+                          │           └── Dozzle     → porta 8080 (logs e consumo)
+                          │
+                          └── Backups em /var/backups/n8n
+                              (depois, copiados para fora da VM)</code></pre>
+<table><tr><th>Fase</th><th>Etapas</th><th>O que você faz</th></tr>
+<tr><td>Instalação</td><td>4 a 9</td><td>Prepara o Ubuntu e instala o Docker pelo repositório oficial.</td></tr>
+<tr><td>Comandos básicos</td><td>10 a 13</td><td>Roda containers, escreve o primeiro arquivo Compose e usa a cola de comandos.</td></tr>
+<tr><td>Aplicação de exemplo</td><td>14 a 17</td><td>Sobe o n8n com PostgreSQL e entende volumes, redes e firewall.</td></tr>
+<tr><td>Monitoramento</td><td>18 e 19</td><td>Comandos nativos e o painel visual Dozzle.</td></tr>
+<tr><td>Operação</td><td>20 a 22</td><td>Backup, atualização de imagens e limpeza de espaço.</td></tr>
+<tr><td>Produção</td><td>23 a 26</td><td>HTTPS, rotina de manutenção, diagnóstico e checklist final.</td></tr></table>
+<div class="note"><strong>Regras para quem está começando:</strong> copie um bloco de cada vez, leia a saída e valide antes de avançar. Para editar arquivos usamos o <code>nano</code>: salve com <strong>Ctrl+O</strong> e Enter, saia com <strong>Ctrl+X</strong>. Arquivos YAML (como o <code>compose.yml</code>) usam <strong>espaços</strong> para indentar; nunca use a tecla Tab. Se algo der diferente do esperado, pare e consulte a etapa 25 (diagnóstico) antes de tentar outra coisa.</div>
+</section>
+
+<section class="step" id="etapa-02">
+<h2>2. Reúna os dados antes de começar</h2>
+<p>Preencha esta tabela antes de iniciar. Guarde senhas e chaves no cofre de senhas da empresa, nunca neste arquivo.</p>
+<table><tr><th>Marcador no guia</th><th>Exemplo</th><th>Como descobrir / decidir</th></tr>
+<tr><td><code>&lt;IP_DA_VM&gt;</code></td><td><code>192.168.1.30</code></td><td>IP fixo da VM. Para ver o atual: <code>ip -br address</code>.</td></tr>
+<tr><td><code>&lt;SEU_USUARIO&gt;</code></td><td><code>joao.silva</code></td><td>Seu usuário administrativo na VM, com <code>sudo</code>.</td></tr>
+<tr><td>Fuso horário</td><td><code>America/Sao_Paulo</code></td><td>Usado pelo sistema e pelos agendamentos do n8n.</td></tr>
+<tr><td>Versão do n8n</td><td><code>2.41.7</code></td><td>Confirme a versão estável atual em <a href="https://github.com/n8n-io/n8n/releases" target="_blank" rel="noopener">github.com/n8n-io/n8n/releases</a> no dia da montagem.</td></tr>
+<tr><td>E-mail do administrador do Dozzle</td><td><code>ti@suaempresa.com.br</code></td><td>Só identifica o usuário no painel (opcional).</td></tr>
+<tr><td><code>&lt;DOMINIO&gt;</code> (só produção)</td><td><code>suaempresa.com.br</code></td><td>Domínio onde você cria o subdomínio <code>n8n.&lt;DOMINIO&gt;</code>. Não é necessário no laboratório.</td></tr></table>
+<div class="note"><strong>Antes de instalar qualquer coisa:</strong> tire um snapshot da VM no seu hipervisor, com o nome <code>antes-do-docker</code>. Se algo der muito errado, você volta a este ponto em vez de reinstalar.</div>
+</section>
+
+<section class="step" id="etapa-03">
+<h2>3. Conceitos essenciais em 5 minutos</h2>
+<p>Docker empacota uma aplicação com tudo o que ela precisa para rodar. Em vez de instalar PostgreSQL e n8n direto no Ubuntu, você “liga” pacotes prontos e isolados. Cinco palavras explicam quase tudo:</p>
+<table><tr><th>Termo</th><th>O que é</th><th>Analogia</th></tr>
+<tr><td><strong>Imagem</strong></td><td>Pacote pronto e somente leitura de uma aplicação (por exemplo, <code>postgres:18</code>). Fica guardada no servidor depois de baixada.</td><td>A receita e os ingredientes embalados.</td></tr>
+<tr><td><strong>Container</strong></td><td>Uma imagem em execução. Pode ser parado, apagado e criado de novo em segundos.</td><td>O prato pronto, servido a partir da receita.</td></tr>
+<tr><td><strong>Volume</strong></td><td>Pasta gerenciada pelo Docker onde ficam os <strong>dados que precisam sobreviver</strong>. Apagar o container não apaga o volume.</td><td>A geladeira que fica, mesmo trocando o prato.</td></tr>
+<tr><td><strong>Rede</strong></td><td>Rede virtual privada entre os containers. Dentro dela, um container encontra o outro pelo <strong>nome do serviço</strong> (o n8n fala com <code>postgres</code>).</td><td>O ramal interno de uma empresa.</td></tr>
+<tr><td><strong>Compose</strong></td><td>Um arquivo <code>compose.yml</code> que descreve vários containers, volumes e redes juntos. Um comando sobe ou derruba tudo.</td><td>O cardápio completo do pedido.</td></tr></table>
+<div class="note"><strong>Regra de ouro:</strong> containers são descartáveis; volumes não. Tudo o que não está num volume (ou numa pasta mapeada) desaparece quando o container é recriado. Por isso as etapas 17 e 20 (dados e backup) são tão importantes.</div>
+<p>Dois comandos aparecem em todo o guia: <code>docker</code> (trabalha com um container ou imagem por vez) e <code>docker compose</code> (trabalha com o projeto inteiro descrito no <code>compose.yml</code>). Em projetos reais, você usa quase só o segundo.</p>
+<div class="warning"><strong>Compose v1 e v2:</strong> existe um programa antigo chamado <code>docker-compose</code> (com hífen). Não use. Neste guia o Compose é um plugin do Docker e o comando é <code>docker compose</code> (com espaço). Tutoriais antigos na internet usam o formato com hífen e um campo <code>version:</code> no arquivo; o campo não é mais necessário.</div>
+</section>
+
+<section class="step" id="etapa-04">
+<h2>4. Preparar o Ubuntu Server</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<h3>4.1 Atualizar o sistema e instalar ferramentas básicas</h3>
+<pre><code>sudo apt update
+sudo apt full-upgrade -y
+sudo apt install -y ca-certificates curl gnupg jq htop nano bash-completion</code></pre>
+<p>O <code>sudo</code> executa o comando como administrador e pede a <strong>sua</strong> senha. O <code>apt update</code> atualiza a lista de pacotes e o <code>full-upgrade</code> instala as atualizações. O <code>bash-completion</code> faz a tecla <strong>Tab</strong> completar comandos do Docker, o que poupa muita digitação.</p>
+<h3>4.2 Fuso horário e relógio</h3>
+<pre><code>sudo timedatectl set-timezone America/Sao_Paulo
+timedatectl status</code></pre>
+<p>Resultado esperado: <code>Time zone: America/Sao_Paulo</code> e <code>System clock synchronized: yes</code>. Relógio certo é essencial para logs e para os agendamentos do n8n.</p>
+<h3>4.3 Conferir IP, espaço em disco e memória</h3>
+<pre><code>ip -br address
+df -h /
+free -h</code></pre>
+<p>As imagens e os volumes do Docker ficam em <code>/var/lib/docker</code>, dentro do disco principal. Para estudar com n8n e PostgreSQL, 2 CPUs, 4 GB de memória e 30 GB de disco são um ponto de partida confortável. Se o <code>df</code> mostrar bem menos espaço que o disco criado, expanda o volume LVM conforme a etapa 5.5 do guia “Montagem dos servidores Ubuntu”.</p>
+<div class="note">Se a VM roda no Proxmox, instale também o agente: <code>sudo apt install -y qemu-guest-agent</code> (e marque a opção <em>QEMU Guest Agent</em> na VM). Se o SSH ainda aceita senha ou o firewall UFW ainda não está configurado, volte às etapas 7, 8 e 14 do guia de montagem dos servidores.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Snapshot <code>antes-do-docker</code> criado.</label></li>
+<li><label><input class="task-check" type="checkbox">Sistema atualizado, fuso correto e relógio sincronizado.</label></li>
+<li><label><input class="task-check" type="checkbox">Espaço em disco e memória conferidos.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-05">
+<h2>5. Remover pacotes Docker conflitantes</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>O Ubuntu tem pacotes Docker próprios (<code>docker.io</code>, <code>docker-compose</code> e outros) que conflitam com os pacotes oficiais da Docker. Em uma instalação nova eles normalmente nem existem, mas a limpeza é rápida e evita problemas difíceis de diagnosticar:</p>
+<pre><code>sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc docker-buildx podman-docker containerd runc | cut -f1)
+snap list 2&gt;/dev/null | grep -i docker || echo "Nenhum Docker instalado via snap"</code></pre>
+<p>O <code>apt</code> pode informar que nenhum desses pacotes está instalado: isso é o esperado. Se o segundo comando mostrar um Docker instalado via snap, remova com <code>sudo snap remove docker</code>.</p>
+<p>Validação: <code>docker --version</code> deve responder <code>command not found</code> neste momento.</p>
+</section>
+
+<section class="step" id="etapa-06">
+<h2>6. Instalar o Docker Engine pelo repositório oficial</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>O repositório oficial da Docker entrega as versões novas e as atualizações pelo próprio <code>apt</code>. Ele tem pacotes para o Ubuntu 26.04 (codinome <code>resolute</code>). Primeiro, a chave de assinatura dos pacotes:</p>
+<pre><code>sudo apt update
+sudo apt install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc</code></pre>
+<p>Depois, o cadastro do repositório. O comando descobre sozinho o codinome do seu Ubuntu:</p>
+<pre><code>sudo tee /etc/apt/sources.list.d/docker.sources &lt;&lt;EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release &amp;&amp; echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+sudo apt update
+cat /etc/apt/sources.list.d/docker.sources</code></pre>
+<p>Confira no arquivo exibido: a linha <code>Suites:</code> deve mostrar <code>resolute</code>, e o <code>sudo apt update</code> deve listar <code>download.docker.com</code> entre as fontes consultadas.</p>
+<p>Instale o Docker Engine e os plugins:</p>
+<pre><code>sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</code></pre>
+<table><tr><th>Pacote</th><th>Para que serve</th></tr>
+<tr><td><code>docker-ce</code></td><td>O Docker Engine, que cria e executa os containers.</td></tr>
+<tr><td><code>docker-ce-cli</code></td><td>O comando <code>docker</code> que você digita no terminal.</td></tr>
+<tr><td><code>containerd.io</code></td><td>Componente de baixo nível usado pelo Engine.</td></tr>
+<tr><td><code>docker-buildx-plugin</code></td><td>Construção de imagens (usado quando você criar imagens próprias).</td></tr>
+<tr><td><code>docker-compose-plugin</code></td><td>O comando <code>docker compose</code>.</td></tr></table>
+<div class="warning"><strong>Não use o “script de conveniência”</strong> (<code>get.docker.com</code>) que aparece em muitos tutoriais. A própria Docker o recomenda só para testes e desenvolvimento, não para produção. O método do repositório permite atualizar e controlar versões com o <code>apt</code>.</div>
+</section>
+
+<section class="step" id="etapa-07">
+<h2>7. Validar a instalação</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<pre><code>sudo systemctl status docker --no-pager
+sudo systemctl is-enabled docker
+docker --version
+docker compose version
+sudo docker run --rm hello-world</code></pre>
+<p>Resultados esperados:</p>
+<ul>
+<li>o status do serviço mostra <code>active (running)</code> e o <code>is-enabled</code> responde <code>enabled</code> (o Docker sobe sozinho quando a VM liga);</li>
+<li><code>docker --version</code> e <code>docker compose version</code> mostram as versões instaladas;</li>
+<li>o <code>hello-world</code> baixa uma imagem minúscula, executa e imprime uma mensagem começando com <code>Hello from Docker!</code>.</li></ul>
+<p>Se o serviço não estiver rodando, inicie com <code>sudo systemctl start docker</code> e consulte a etapa 25.</p>
+<p>O parâmetro <code>--rm</code> do último comando apaga o container assim que ele termina. Sem ele, cada teste deixaria um container parado para trás.</p>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Repositório oficial cadastrado, com <code>Suites: resolute</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">Docker e Compose instalados; serviço ativo e habilitado no boot.</label></li>
+<li><label><input class="task-check" type="checkbox"><code>hello-world</code> executado com sucesso.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-08">
+<h2>8. Usar o Docker sem sudo</h2>
+<p><span class="pill">Executar em: a VM, na conta de cada pessoa da equipe</span></p>
+<p>Por padrão, só o root fala com o Docker. Para evitar digitar <code>sudo</code> o tempo todo, adicione seu usuário ao grupo <code>docker</code>:</p>
+<pre><code>sudo usermod -aG docker $USER
+newgrp docker
+id | grep docker
+docker run --rm hello-world</code></pre>
+<p>O <code>newgrp docker</code> ativa o grupo na sessão atual. Em outras janelas, saia do SSH e entre de novo. O comando <code>id</code> deve listar <code>docker</code>, e o <code>hello-world</code> agora funciona sem <code>sudo</code>.</p>
+<div class="danger"><strong>Quem está no grupo <code>docker</code> tem poderes de root na VM.</strong> Qualquer pessoa desse grupo consegue montar o disco inteiro dentro de um container. Adicione somente administradores de confiança, e nunca contas de aplicações ou de usuários comuns.</div>
+</section>
+
+<section class="step" id="etapa-09">
+<h2>9. Ajustes iniciais: rotação de logs e início automático</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>Por padrão, o Docker guarda os logs de cada container sem limite de tamanho. Em um servidor que roda por meses, isso pode encher o disco. Configure a rotação <strong>antes</strong> de criar os containers do projeto:</p>
+<pre><code>sudo nano /etc/docker/daemon.json</code></pre>
+<pre><code>{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}</code></pre>
+<p>Cada container passa a guardar no máximo 3 arquivos de 10 MB de log. Valide o formato do arquivo e reinicie o Docker:</p>
+<pre><code>sudo jq . /etc/docker/daemon.json
+sudo systemctl restart docker
+docker info --format '{{.LoggingDriver}}'
+docker compose version</code></pre>
+<p>O <code>jq</code> deve repetir o conteúdo formatado (se mostrar erro, falta uma vírgula ou chave). O <code>docker info</code> deve responder <code>json-file</code>.</p>
+<div class="warning"><strong>Atenção:</strong> a nova configuração vale apenas para containers <strong>criados depois</strong> dela. Containers que já existiam precisam ser recriados (<code>docker compose up -d --force-recreate</code>). Reiniciar o serviço Docker também reinicia os containers em execução, então faça isso fora do horário de uso.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Meu usuário está no grupo <code>docker</code> e o Docker funciona sem <code>sudo</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">Rotação de logs configurada e validada com <code>docker info</code>.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-10">
+<h2>10. Primeiros comandos: imagens e containers</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>Vamos rodar um servidor web de teste, olhar o que ele faz e depois apagá-lo. Execute linha por linha:</p>
+<pre><code>docker run -d --name teste-nginx -p 8081:80 nginx:stable
+docker ps
+curl -I http://localhost:8081
+docker logs teste-nginx
+docker exec -it teste-nginx sh
+# dentro do container: ls /usr/share/nginx/html ; depois digite: exit
+docker stop teste-nginx
+docker ps -a
+docker rm teste-nginx
+docker images</code></pre>
+<table><tr><th>Parte do comando</th><th>Significado</th></tr>
+<tr><td><code>-d</code></td><td><em>detached</em>: roda em segundo plano e devolve o terminal para você.</td></tr>
+<tr><td><code>--name teste-nginx</code></td><td>Dá um nome ao container (sem isso o Docker inventa um).</td></tr>
+<tr><td><code>-p 8081:80</code></td><td>Publica a porta: <strong>porta 8081 da VM</strong> → <strong>porta 80 do container</strong>. Formato sempre <code>VM:container</code>.</td></tr>
+<tr><td><code>nginx:stable</code></td><td>A imagem e a etiqueta (<em>tag</em>) da versão. Se você não informar a tag, o Docker usa <code>latest</code>.</td></tr>
+<tr><td><code>docker exec -it … sh</code></td><td>Abre um terminal <strong>dentro</strong> do container em execução. Para sair: <code>exit</code>.</td></tr></table>
+<p>Resultados esperados: o <code>docker ps</code> lista o <code>teste-nginx</code> com <code>Up</code> no status; o <code>curl</code> retorna <code>HTTP/1.1 200 OK</code>; depois do <code>docker stop</code>, o container só aparece com <code>docker ps -a</code> (que mostra também os parados); depois do <code>docker rm</code>, ele some. A imagem <code>nginx:stable</code> continua baixada (aparece no <code>docker images</code>), então um novo <code>docker run</code> é instantâneo.</p>
+<div class="note">Você pode abrir <code>http://&lt;IP_DA_VM&gt;:8081</code> no navegador de outro computador enquanto o container estiver no ar. A página padrão do Nginx deve aparecer. Se não abrir, o motivo costuma ser o firewall da rede; veja a etapa 17.</div>
+</section>
+
+<section class="step" id="etapa-11">
+<h2>11. Cola de comandos: Docker</h2>
+<p><span class="pill">Referência rápida</span></p>
+<p>Use esta tabela como consulta. Onde aparece <code>&lt;nome&gt;</code>, troque pelo nome ou ID do container (o <code>docker ps</code> mostra os dois; a tecla Tab completa o nome).</p>
+<h3>Containers</h3>
+<table><tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>docker ps</code></td><td>Lista containers em execução.</td></tr>
+<tr><td><code>docker ps -a</code></td><td>Lista todos, inclusive os parados.</td></tr>
+<tr><td><code>docker run -d --name &lt;nome&gt; &lt;imagem&gt;</code></td><td>Cria e inicia um container em segundo plano.</td></tr>
+<tr><td><code>docker stop &lt;nome&gt;</code> / <code>docker start &lt;nome&gt;</code></td><td>Para / inicia um container existente.</td></tr>
+<tr><td><code>docker restart &lt;nome&gt;</code></td><td>Reinicia o container.</td></tr>
+<tr><td><code>docker rm &lt;nome&gt;</code></td><td>Apaga um container parado (use <code>-f</code> para forçar um em execução).</td></tr>
+<tr><td><code>docker logs -f --tail 100 &lt;nome&gt;</code></td><td>Mostra as últimas 100 linhas de log e acompanha em tempo real (Ctrl+C para sair).</td></tr>
+<tr><td><code>docker exec -it &lt;nome&gt; sh</code></td><td>Abre um terminal dentro do container.</td></tr>
+<tr><td><code>docker inspect &lt;nome&gt;</code></td><td>Mostra todos os detalhes (rede, volumes, variáveis, estado) em JSON.</td></tr>
+<tr><td><code>docker top &lt;nome&gt;</code></td><td>Lista os processos que rodam dentro do container.</td></tr>
+<tr><td><code>docker cp &lt;nome&gt;:/caminho ./destino</code></td><td>Copia um arquivo do container para a VM (e vice-versa).</td></tr></table>
+<h3>Imagens</h3>
+<table><tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>docker images</code></td><td>Lista as imagens baixadas.</td></tr>
+<tr><td><code>docker pull &lt;imagem&gt;:&lt;tag&gt;</code></td><td>Baixa ou atualiza uma imagem.</td></tr>
+<tr><td><code>docker rmi &lt;imagem&gt;</code></td><td>Apaga uma imagem que nenhum container usa.</td></tr></table>
+<h3>Volumes, redes e sistema</h3>
+<table><tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>docker volume ls</code> / <code>docker volume inspect &lt;vol&gt;</code></td><td>Lista volumes / mostra onde um volume fica no disco.</td></tr>
+<tr><td><code>docker network ls</code> / <code>docker network inspect &lt;rede&gt;</code></td><td>Lista redes / mostra quais containers estão em cada rede.</td></tr>
+<tr><td><code>docker stats</code></td><td>Painel ao vivo de CPU e memória por container (Ctrl+C para sair).</td></tr>
+<tr><td><code>docker system df</code></td><td>Quanto espaço imagens, containers e volumes ocupam.</td></tr>
+<tr><td><code>docker info</code> / <code>docker version</code></td><td>Informações e versões do Docker instalado.</td></tr></table>
+<div class="note">Dica: <code>docker &lt;comando&gt; --help</code> explica qualquer comando e suas opções, por exemplo <code>docker run --help</code>.</div>
+</section>
+
+<section class="step" id="etapa-12">
+<h2>12. Seu primeiro arquivo Compose</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>Com o <code>docker run</code>, cada opção precisa ser digitada de novo toda vez. O Compose guarda tudo num arquivo, que serve também como documentação do que roda no servidor. Vamos criar um laboratório simples numa pasta de teste:</p>
+<pre><code>mkdir -p ~/lab-compose/site
+cd ~/lab-compose
+echo '&lt;h1&gt;Ola, Compose!&lt;/h1&gt;' &gt; site/index.html
+nano compose.yml</code></pre>
+<pre><code>name: lab
+
+services:
+  web:
+    image: nginx:stable
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    volumes:
+      - ./site:/usr/share/nginx/html:ro</code></pre>
+<pre><code>docker compose up -d
+docker compose ps
+curl http://localhost:8082
+docker compose logs --tail 20 web
+docker compose down</code></pre>
+<p>O <code>curl</code> deve responder <code>&lt;h1&gt;Ola, Compose!&lt;/h1&gt;</code>. O <code>docker compose down</code> remove o container e a rede do projeto, mas <strong>não</strong> apaga a pasta <code>site</code>, que é uma pasta da VM mapeada para dentro do container.</p>
+<h3>Anatomia do arquivo</h3>
+<table><tr><th>Campo</th><th>Significado</th></tr>
+<tr><td><code>name</code></td><td>Nome do projeto. Prefixa os nomes de containers, redes e volumes (<code>lab-web-1</code>).</td></tr>
+<tr><td><code>services</code></td><td>Lista dos containers do projeto. Cada nome (<code>web</code>) é também o nome DNS na rede interna.</td></tr>
+<tr><td><code>image</code></td><td>Qual imagem e tag usar.</td></tr>
+<tr><td><code>restart: unless-stopped</code></td><td>Reinicia o container se ele cair e quando a VM ligar, a não ser que você o tenha parado de propósito.</td></tr>
+<tr><td><code>ports</code></td><td>Publica portas no formato <code>"VM:container"</code>.</td></tr>
+<tr><td><code>volumes</code></td><td>Liga uma pasta ou volume ao interior do container. <code>:ro</code> significa somente leitura.</td></tr>
+<tr><td><code>environment</code></td><td>Variáveis de ambiente (configurações) passadas ao container. Você usará na etapa 15.</td></tr>
+<tr><td><code>depends_on</code></td><td>Define a ordem: um serviço só inicia depois que outro estiver pronto.</td></tr></table>
+<div class="warning"><strong>Volume nomeado ou pasta mapeada?</strong> Neste laboratório usamos uma <em>pasta mapeada</em> (<code>./site</code>), boa para arquivos que você edita. Na etapa 15 usaremos <em>volumes nomeados</em> (<code>data:/home/node/.n8n</code>), melhores para dados de aplicações, porque o Docker cuida de local e permissões.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Container <code>nginx:stable</code> executado e apagado com <code>docker run</code> / <code>docker rm</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">Primeiro <code>compose.yml</code> sobe e derruba com <code>docker compose up -d</code> e <code>down</code>.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-13">
+<h2>13. Cola de comandos: Docker Compose</h2>
+<p><span class="pill">Referência rápida</span></p>
+<div class="note"><strong>Regra principal:</strong> execute os comandos <code>docker compose</code> <strong>dentro da pasta do projeto</strong>, onde está o <code>compose.yml</code>. Fora dela, o Compose não encontra o arquivo. De outra pasta, use <code>docker compose -f /opt/stacks/n8n/compose.yml …</code>.</div>
+<table><tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>docker compose up -d</code></td><td>Cria e inicia tudo. Se você alterou o <code>compose.yml</code> ou o <code>.env</code>, recria só o que mudou.</td></tr>
+<tr><td><code>docker compose down</code></td><td>Para e remove containers e redes. <strong>Os volumes são mantidos.</strong></td></tr>
+<tr><td><code>docker compose ps</code></td><td>Mostra o estado dos serviços do projeto (inclui <code>healthy</code> quando há verificação de saúde).</td></tr>
+<tr><td><code>docker compose logs -f --tail 100 [serviço]</code></td><td>Acompanha os logs de um serviço ou de todos.</td></tr>
+<tr><td><code>docker compose logs --since 1h [serviço]</code></td><td>Logs da última hora.</td></tr>
+<tr><td><code>docker compose restart [serviço]</code></td><td>Reinicia um serviço sem recriá-lo. Não relê o <code>.env</code>; para isso use <code>up -d</code>.</td></tr>
+<tr><td><code>docker compose stop [serviço]</code> / <code>start [serviço]</code></td><td>Para / inicia sem remover.</td></tr>
+<tr><td><code>docker compose pull</code></td><td>Baixa imagens novas das tags do arquivo.</td></tr>
+<tr><td><code>docker compose up -d --force-recreate [serviço]</code></td><td>Recria os containers mesmo sem mudança (útil após ajustar o Docker).</td></tr>
+<tr><td><code>docker compose exec [serviço] sh</code></td><td>Abre um terminal dentro de um serviço.</td></tr>
+<tr><td><code>docker compose exec -T [serviço] &lt;comando&gt;</code></td><td>Executa um comando sem terminal (usado em scripts e backups).</td></tr>
+<tr><td><code>docker compose top</code></td><td>Processos de cada container do projeto.</td></tr>
+<tr><td><code>docker compose config -q</code></td><td>Valida o arquivo; não imprime nada se estiver correto.</td></tr>
+<tr><td><code>docker compose ls</code></td><td>Lista os projetos Compose que existem na VM.</td></tr></table>
+<div class="danger"><strong>Comandos que apagam dados:</strong> <code>docker compose down -v</code> (o <code>-v</code> apaga os volumes), <code>docker volume rm</code> e <code>docker system prune --volumes</code> destroem bancos de dados e arquivos de forma definitiva. No laboratório é uma forma útil de recomeçar do zero; em produção, só com backup testado.</div>
+</section>
+
+<section class="step" id="etapa-14">
+<h2>14. Montar o projeto n8n: pasta e arquivo .env</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>Cada projeto fica em sua própria pasta dentro de <code>/opt/stacks</code>. Assim, qualquer pessoa da equipe sabe onde procurar.</p>
+<pre><code>sudo mkdir -p /opt/stacks/n8n /opt/stacks/dozzle
+sudo chown -R $USER:$USER /opt/stacks
+cd /opt/stacks/n8n</code></pre>
+<h3>14.1 Por que usar um arquivo .env</h3>
+<p>O <code>.env</code> guarda senhas, chaves e configurações que mudam entre o laboratório e a produção. O <code>compose.yml</code> só referencia os nomes (<code>${POSTGRES_PASSWORD}</code>). Resultado: o <code>compose.yml</code> pode ser compartilhado e versionado, e os segredos ficam só na VM.</p>
+<h3>14.2 Criar o .env com segredos gerados automaticamente</h3>
+<p>O bloco abaixo gera as senhas aleatórias e descobre o IP da VM sozinho. Copie e cole tudo de uma vez:</p>
+<pre><code>cd /opt/stacks/n8n
+IP=$(ip -4 route get 1.1.1.1 | grep -oP 'src \K\S+')
+install -m 600 /dev/null .env
+cat &gt;&gt; .env &lt;&lt;EOF
+# Versão do n8n (confirme a estável atual em github.com/n8n-io/n8n/releases)
+N8N_VERSION=2.41.7
+
+# Fuso horário
+TZ=America/Sao_Paulo
+
+# PostgreSQL
+POSTGRES_USER=n8n
+POSTGRES_PASSWORD=$(openssl rand -hex 24)
+POSTGRES_DB=n8n
+
+# Chave que criptografa as credenciais salvas no n8n. NUNCA perca nem troque.
+N8N_ENCRYPTION_KEY=$(openssl rand -hex 32)
+
+# Endereço de acesso (laboratório: HTTP pelo IP da VM)
+N8N_BIND=0.0.0.0
+N8N_HOST=${IP}
+N8N_PROTOCOL=http
+WEBHOOK_URL=http://${IP}:5678/
+N8N_SECURE_COOKIE=false
+N8N_PROXY_HOPS=0
+EOF
+ls -l .env
+grep -E '^(N8N_HOST|WEBHOOK_URL)=' .env</code></pre>
+<p>Resultados esperados: o <code>ls -l</code> mostra <code>-rw-------</code> (somente você lê o arquivo) e o <code>grep</code> mostra o IP da VM nas duas linhas. Se o IP aparecer vazio, edite o arquivo com <code>nano .env</code> e preencha à mão.</p>
+<table><tr><th>Variável</th><th>Para que serve</th></tr>
+<tr><td><code>N8N_VERSION</code></td><td>Versão fixa do n8n. Fixar a versão evita atualização surpresa ao rodar <code>docker compose pull</code>.</td></tr>
+<tr><td><code>N8N_ENCRYPTION_KEY</code></td><td>Criptografa as credenciais (senhas e tokens de integrações) guardadas no banco. Sem a mesma chave, um backup restaurado não consegue ler as credenciais.</td></tr>
+<tr><td><code>N8N_BIND</code></td><td>Em quais endereços da VM a porta 5678 é publicada. <code>0.0.0.0</code> = qualquer um (laboratório). Em produção será <code>127.0.0.1</code>.</td></tr>
+<tr><td><code>WEBHOOK_URL</code></td><td>Endereço público que o n8n mostra e registra para webhooks. Deve ser o endereço que quem acessa realmente usa, <strong>terminando com barra</strong>.</td></tr>
+<tr><td><code>N8N_SECURE_COOKIE</code></td><td>Exige HTTPS para o login. No laboratório (HTTP) usamos <code>false</code>; em produção volta para <code>true</code>.</td></tr>
+<tr><td><code>N8N_PROXY_HOPS</code></td><td>Quantos proxies existem na frente do n8n. Será <code>1</code> em produção, com o Nginx.</td></tr></table>
+<div class="danger"><strong>Guarde agora no cofre de senhas</strong> o conteúdo do <code>.env</code>, principalmente <code>N8N_ENCRYPTION_KEY</code> e <code>POSTGRES_PASSWORD</code>. Para exibir: <code>cat /opt/stacks/n8n/.env</code> (faça isso com a tela fora do alcance de outras pessoas). Nunca envie esse arquivo por chat ou e-mail, nem o coloque em repositório Git.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Pastas <code>/opt/stacks/n8n</code> e <code>/opt/stacks/dozzle</code> criadas.</label></li>
+<li><label><input class="task-check" type="checkbox"><code>.env</code> criado com permissão 600 e copiado para o cofre de senhas.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-15">
+<h2>15. Escrever o compose.yml do n8n com PostgreSQL</h2>
+<p><span class="pill">Executar em: a VM, na pasta /opt/stacks/n8n</span></p>
+<p>O n8n funciona sozinho com um banco SQLite embutido, mas a própria documentação do n8n recomenda PostgreSQL para uso contínuo, e ele facilita o backup. O arquivo abaixo define os dois serviços.</p>
+<pre><code>cd /opt/stacks/n8n
+nano compose.yml</code></pre>
+<pre><code>name: n8n
+
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:${N8N_VERSION}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${N8N_BIND}:5678:5678"
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: "5432"
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_HOST: ${N8N_HOST}
+      N8N_PROTOCOL: ${N8N_PROTOCOL}
+      WEBHOOK_URL: ${WEBHOOK_URL}
+      N8N_SECURE_COOKIE: ${N8N_SECURE_COOKIE}
+      N8N_PROXY_HOPS: ${N8N_PROXY_HOPS}
+      GENERIC_TIMEZONE: ${TZ}
+      TZ: ${TZ}
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+    volumes:
+      - data:/home/node/.n8n
+
+volumes:
+  db:
+  data:</code></pre>
+<h3>O que cada decisão significa</h3>
+<table><tr><th>Trecho</th><th>Por quê</th></tr>
+<tr><td><code>postgres</code> sem <code>ports</code></td><td>O banco <strong>não é publicado</strong> na VM. Só o n8n, que está na mesma rede do projeto, o alcança, usando o nome <code>postgres</code> como endereço (<code>DB_POSTGRESDB_HOST</code>).</td></tr>
+<tr><td><code>healthcheck</code> + <code>depends_on … service_healthy</code></td><td>O n8n só inicia depois que o PostgreSQL responde, evitando erros de conexão na partida.</td></tr>
+<tr><td><code>PGDATA</code></td><td>Mantenha esta linha. O PostgreSQL 18 mudou o local padrão dos dados; sem ela, ele gravaria fora do volume e seu banco começaria vazio a cada recriação do container (aviso da documentação do n8n).</td></tr>
+<tr><td><code>postgres:18</code> e <code>N8N_VERSION</code></td><td>Versões fixas. Com <code>latest</code> você nunca sabe qual versão está rodando nem o que mudou numa atualização.</td></tr>
+<tr><td>Volumes <code>db</code> e <code>data</code></td><td>Guardam o banco e a pasta <code>.n8n</code> do n8n (configurações e arquivos internos). O Docker os cria como <code>n8n_db</code> e <code>n8n_data</code> (nome do projeto + nome do volume).</td></tr>
+<tr><td><code>restart: unless-stopped</code></td><td>Os dois serviços voltam sozinhos após uma queda ou reinício da VM.</td></tr></table>
+<h3>Validar o arquivo antes de subir</h3>
+<pre><code>docker compose config -q &amp;&amp; echo "Arquivo válido"</code></pre>
+<p>Se aparecer <code>Arquivo válido</code> sem avisos, siga em frente. Se aparecer <code>variable is not set</code>, você não está na pasta <code>/opt/stacks/n8n</code> ou falta uma linha no <code>.env</code>. Se aparecer erro de sintaxe, confira a indentação (somente espaços).</p>
+<div class="warning">Evite <code>docker compose config</code> sem o <code>-q</code> em tela compartilhada: ele imprime o arquivo com as senhas já substituídas.</div>
+</section>
+
+<section class="step" id="etapa-16">
+<h2>16. Subir o n8n e testar</h2>
+<p><span class="pill">Executar em: a VM, na pasta /opt/stacks/n8n</span></p>
+<pre><code>cd /opt/stacks/n8n
+docker compose pull
+docker compose up -d
+docker compose ps</code></pre>
+<p>O <code>pull</code> baixa as imagens (pode levar alguns minutos na primeira vez). Resultado esperado do <code>ps</code> (colunas simplificadas):</p>
+<pre><code>NAME             IMAGE                             STATUS                  PORTS
+n8n-n8n-1        docker.n8n.io/n8nio/n8n:2.41.7    Up 1 minute             0.0.0.0:5678-&gt;5678/tcp
+n8n-postgres-1   postgres:18                       Up 1 minute (healthy)   5432/tcp</code></pre>
+<p>Observe que o PostgreSQL mostra <code>5432/tcp</code> sem o sinal <code>-&gt;</code>: a porta existe só dentro do projeto. Agora, acompanhe a inicialização e teste:</p>
+<pre><code>docker compose logs -f --tail 50 n8n
+# Aguarde aparecer uma mensagem informando que o editor está acessível. Ctrl+C para sair dos logs.
+curl -sf http://localhost:5678/healthz; echo</code></pre>
+<p>O teste de saúde deve responder <code>{"status":"ok"}</code>. Então, no navegador de outro computador da rede, abra <code>http://&lt;IP_DA_VM&gt;:5678</code>. O n8n mostra a tela de criação da conta de proprietário: use e-mail da equipe e uma senha forte guardada no cofre.</p>
+<div class="note"><strong>Se aparecer erro sobre “secure cookie”:</strong> o n8n exige HTTPS para o login quando <code>N8N_SECURE_COOKIE=true</code>. No laboratório, mantenha <code>false</code> (como no <code>.env</code> da etapa 14) e acesse por HTTP. Em produção a solução correta é servir por HTTPS, e não deixar em <code>false</code>.</div>
+<h3>Teste de persistência (não pule)</h3>
+<p>Crie um workflow qualquer no editor (um nó manual já basta) e salve. Depois:</p>
+<pre><code>docker compose down
+docker compose up -d
+docker compose ps</code></pre>
+<p>Atualize o navegador: sua conta e o workflow continuam lá, porque os dados estão nos volumes. Por fim, teste o reinício completo da VM:</p>
+<pre><code>sudo reboot</code></pre>
+<p>Aguarde um minuto, conecte novamente e confira com <code>docker ps</code>: os dois containers devem estar de volta sozinhos. Se não voltaram, veja a etapa 25.</p>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">n8n e PostgreSQL no ar; <code>/healthz</code> responde <code>ok</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">Conta de proprietário criada e workflow de teste salvo.</label></li>
+<li><label><input class="task-check" type="checkbox">Workflow continua após <code>down</code>/<code>up</code> e após reiniciar a VM.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-17">
+<h2>17. Volumes, redes e firewall: onde estão seus dados</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<h3>17.1 Volumes</h3>
+<pre><code>docker volume ls
+docker volume inspect n8n_db --format '{{.Mountpoint}}'
+sudo du -sh /var/lib/docker/volumes/n8n_db/_data</code></pre>
+<p>O <code>Mountpoint</code> mostra onde o volume fica no disco da VM (dentro de <code>/var/lib/docker/volumes</code>). Você pode <strong>olhar</strong> o tamanho, mas nunca edite nem copie arquivos do banco ali dentro com o PostgreSQL em execução. Para guardar dados com segurança, use o backup da etapa 20.</p>
+<h3>17.2 Redes</h3>
+<pre><code>docker network ls
+docker network inspect n8n_default --format '{{range .Containers}}{{.Name}}  {{.IPv4Address}}{{"\n"}}{{end}}'</code></pre>
+<p>O Compose criou a rede <code>n8n_default</code> e colocou os dois containers nela. O segundo comando lista cada container com o IP interno. É por essa rede que o n8n encontra o banco pelo nome <code>postgres</code>, sem depender de IP.</p>
+<h3>17.3 Como as portas ficam expostas</h3>
+<table><tr><th>Forma no <code>compose.yml</code></th><th>Quem consegue acessar</th></tr>
+<tr><td>Sem <code>ports</code> (como o postgres)</td><td>Somente os containers do mesmo projeto.</td></tr>
+<tr><td><code>"127.0.0.1:5678:5678"</code></td><td>Somente a própria VM. É o formato de produção: um proxy (Nginx) na VM atende o público.</td></tr>
+<tr><td><code>"5678:5678"</code> ou <code>"0.0.0.0:5678:5678"</code></td><td>Qualquer computador que alcance a VM pela rede. É o que o laboratório usa.</td></tr></table>
+<div class="danger"><strong>Armadilha importante: o Docker passa por cima do UFW.</strong> Portas publicadas por containers <strong>não respeitam</strong> as regras do UFW nem do firewalld; o tráfego é liberado pelo Docker antes do UFW ver. Ou seja, mesmo com <code>ufw default deny incoming</code>, a porta <code>0.0.0.0:5678</code> continua aberta para a rede. Além disso, o Docker só é compatível com regras de firewall criadas por <code>iptables</code>/<code>ip6tables</code>, não com regras criadas diretamente por <code>nft</code>.
+<br><br>Duas defesas simples: (1) publicar em <code>127.0.0.1</code> tudo o que não precisa ser acessado direto de fora; (2) conferir sempre o que está escutando com o comando abaixo.</div>
+<pre><code>sudo ss -lntp | grep -E '5678|8080|docker-proxy'</code></pre>
+<p>Cada linha com <code>0.0.0.0:</code> ou <code>*:</code> está aberta para a rede; <code>127.0.0.1:</code> está restrita à VM. Para regras avançadas (por exemplo, liberar uma porta publicada apenas para a rede interna), consulte a página oficial “Packet filtering and firewalls” indicada nas referências.</p>
+</section>
+
+<section class="step" id="etapa-18">
+<h2>18. Monitoramento, nível 1: comandos nativos</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>Antes de qualquer ferramenta visual, aprenda a pergunta e o comando que responde a ela. Isso resolve 90% dos problemas e funciona mesmo quando o painel está fora do ar.</p>
+<table><tr><th>Pergunta</th><th>Comando</th></tr>
+<tr><td>Os serviços do projeto estão no ar?</td><td><code>cd /opt/stacks/n8n &amp;&amp; docker compose ps</code></td></tr>
+<tr><td>Quanta CPU e memória cada container usa agora?</td><td><code>docker stats --no-stream</code></td></tr>
+<tr><td>O mesmo, em formato enxuto</td><td><code>docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"</code></td></tr>
+<tr><td>O que o n8n está registrando?</td><td><code>docker compose logs -f --tail 100 n8n</code></td></tr>
+<tr><td>Houve erros na última hora?</td><td><code>docker compose logs --since 1h | grep -i -E "error|fatal"</code></td></tr>
+<tr><td>Algum container reiniciando em loop ou sem saúde?</td><td><code>docker ps --filter status=restarting</code> e <code>docker ps --filter health=unhealthy</code></td></tr>
+<tr><td>Quantas vezes cada container reiniciou? Houve falta de memória?</td><td><code>docker ps -q | xargs -r docker inspect -f '{{.Name}} reinicios={{.RestartCount}} oom={{.State.OOMKilled}}'</code></td></tr>
+<tr><td>Quanto espaço o Docker ocupa?</td><td><code>docker system df</code></td></tr>
+<tr><td>E o disco e a memória da VM?</td><td><code>df -h /</code> e <code>free -h</code> (ou <code>htop</code>, tecla <strong>q</strong> para sair)</td></tr>
+<tr><td>O serviço Docker em si está bem?</td><td><code>sudo systemctl status docker --no-pager</code> e <code>sudo journalctl -u docker -n 50 --no-pager</code></td></tr></table>
+<p>Para a rotina diária, reúna as verificações em um script de “resumo de saúde”:</p>
+<pre><code>sudo nano /usr/local/bin/docker-saude.sh</code></pre>
+<pre><code>#!/usr/bin/env bash
+# Resumo rápido da saúde do Docker nesta VM
+echo "== Containers =="
+docker ps -a --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+echo
+echo "== Reiniciando =="
+docker ps --filter status=restarting --format '{{.Names}}'
+echo "== Sem saúde (unhealthy) =="
+docker ps --filter health=unhealthy --format '{{.Names}}'
+echo
+echo "== Reinícios e falta de memória =="
+docker ps -q | xargs -r docker inspect -f '{{.Name}} reinicios={{.RestartCount}} oom={{.State.OOMKilled}}'
+echo
+echo "== Espaço =="
+docker system df
+df -h / | tail -1</code></pre>
+<pre><code>sudo chmod 755 /usr/local/bin/docker-saude.sh
+docker-saude.sh</code></pre>
+<div class="note"><strong>Anote o consumo em repouso</strong> (<code>docker stats --no-stream</code>) logo que o n8n estiver funcionando sem workflows. Quando alguém reclamar de lentidão, você terá um valor de referência para comparar.</div>
+</section>
+
+<section class="step" id="etapa-19">
+<h2>19. Monitoramento, nível 2: Dozzle (painel visual leve)</h2>
+<p><span class="pill">Executar em: a VM, na pasta /opt/stacks/dozzle</span></p>
+<p>O <strong>Dozzle</strong> é um painel web leve, de código aberto, que roda em um único container. Ele mostra os containers da VM, deixa ler e pesquisar os logs em tempo real no navegador e exibe o consumo deles, sem instalar bancos de dados nem agentes. É ideal para uma equipe que ainda não domina a linha de comando.</p>
+<h3>19.1 Criar o usuário de acesso</h3>
+<p>O Dozzle tem login próprio. Vamos criar o arquivo de usuários antes de subir (a senha é pedida de forma interativa e não fica no histórico do terminal):</p>
+<pre><code>cd /opt/stacks/dozzle
+mkdir -p data
+docker run -it --rm amir20/dozzle generate admin --email ti@suaempresa.com.br --name "Administrador" &gt; data/users.yml
+chmod 600 data/users.yml
+head -4 data/users.yml</code></pre>
+<p>Digite a senha quando for solicitada (o cursor pode não mostrar o que você digita). O arquivo resultante contém o usuário <code>admin</code> e a senha em formato de hash (<code>bcrypt</code>), nunca em texto puro. Guarde a senha no cofre.</p>
+<h3>19.2 Escrever o compose.yml e subir</h3>
+<pre><code>nano compose.yml</code></pre>
+<pre><code>name: dozzle
+
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DOZZLE_AUTH_PROVIDER: simple
+      DOZZLE_HOSTNAME: vm-docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/data</code></pre>
+<pre><code>docker compose config -q &amp;&amp; echo "Arquivo válido"
+docker compose up -d
+docker compose ps
+docker compose logs --tail 20 dozzle</code></pre>
+<p>Nos logs deve aparecer que o Dozzle leu o arquivo <code>users.yml</code>. Abra <code>http://&lt;IP_DA_VM&gt;:8080</code> no navegador e entre com o usuário <code>admin</code>.</p>
+<h3>19.3 Como usar</h3>
+<ul>
+<li>A lista à esquerda mostra todos os containers da VM, inclusive o próprio Dozzle. Clique em um (por exemplo, <code>n8n-n8n-1</code>) para ver os logs em tempo real.</li>
+<li>Use a caixa de busca para filtrar por palavras como <code>error</code> ou pelo nome de um workflow.</li>
+<li>Containers parados ou reiniciando aparecem destacados: é o primeiro lugar para olhar quando alguém avisa que “o n8n parou”.</li>
+<li>O painel também mostra o consumo de CPU e memória de cada container.</li></ul>
+<div class="danger"><strong>Segurança do Dozzle:</strong> para ler containers, ele acessa o <code>docker.sock</code>, que na prática equivale a <strong>acesso de root à VM</strong>. Por isso: (1) mantenha o login ligado (<code>DOZZLE_AUTH_PROVIDER: simple</code>); (2) mantenha desligadas as opções de <em>ações</em> (parar/iniciar containers) e <em>shell</em>, que ficam desativadas por padrão; (3) <strong>nunca</strong> exponha a porta 8080 diretamente na internet; (4) em produção, publique só em <code>127.0.0.1</code> (etapa 23). Atenção: marcar o socket como somente leitura (<code>:ro</code>) <strong>não</strong> restringe o que o Dozzle pode fazer, pois as chamadas à API continuam passando; só um “socket proxy” restringe de verdade.</div>
+<div class="note">Se, no futuro, a equipe quiser <strong>gerenciar</strong> containers pela interface (criar, parar, editar stacks), existem painéis mais completos, como o Portainer. Eles são mais pesados e exigem os mesmos cuidados com o <code>docker.sock</code>. Para monitorar e ler logs, o Dozzle é suficiente e bem mais simples.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Comandos de monitoramento da etapa 18 executados e entendidos.</label></li>
+<li><label><input class="task-check" type="checkbox">Script <code>docker-saude.sh</code> funcionando.</label></li>
+<li><label><input class="task-check" type="checkbox">Dozzle no ar, com login, mostrando os logs do n8n.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-20">
+<h2>20. Backup e restauração</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>Containers são descartáveis; o que importa são os <strong>dados</strong>. Para o n8n, o backup precisa de três coisas:</p>
+<table><tr><th>O quê</th><th>Onde está</th><th>Como é copiado</th></tr>
+<tr><td>Banco (workflows, credenciais criptografadas, execuções)</td><td>Volume <code>n8n_db</code> (PostgreSQL)</td><td><code>pg_dump</code>, que gera uma cópia consistente mesmo com o banco em uso.</td></tr>
+<tr><td>Pasta interna do n8n</td><td>Volume <code>n8n_data</code></td><td>Compactação do volume.</td></tr>
+<tr><td>Configuração e chave de criptografia</td><td><code>compose.yml</code> e <code>.env</code></td><td>Compactação dos dois arquivos.</td></tr></table>
+<div class="danger"><strong>Backup sem a <code>N8N_ENCRYPTION_KEY</code> não serve para as credenciais.</strong> Se você restaurar o banco em outra VM com uma chave diferente, o n8n não consegue ler as credenciais salvas (senhas e tokens de integrações), e todas teriam que ser recriadas. Por isso o <code>.env</code> entra no backup e no cofre de senhas.</div>
+<h3>20.1 Script de backup</h3>
+<pre><code>sudo nano /usr/local/bin/backup-n8n.sh</code></pre>
+<pre><code>#!/usr/bin/env bash
+# Backup diário do n8n: banco, volume e configuração
+set -euo pipefail
+
+PROJETO="/opt/stacks/n8n"
+DESTINO="/var/backups/n8n"
+RETENCAO_DIAS=14
+DATA=$(date +%F_%H%M)
+
+cd "$PROJETO"
+set -a; . ./.env; set +a      # carrega POSTGRES_USER e POSTGRES_DB
+
+install -d -m 700 "$DESTINO"
+
+echo "1/3 Dump do PostgreSQL..."
+docker compose exec -T postgres pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc \
+  &gt; "${DESTINO}/n8n_db_${DATA}.dump"
+[ -s "${DESTINO}/n8n_db_${DATA}.dump" ] || { echo "ERRO: dump vazio"; exit 1; }
+
+echo "2/3 Volume n8n_data..."
+docker run --rm -v n8n_data:/dados:ro -v "${DESTINO}":/backup alpine \
+  tar czf "/backup/n8n_data_${DATA}.tar.gz" -C /dados .
+
+echo "3/3 Configuração (compose.yml e .env)..."
+tar czf "${DESTINO}/config_${DATA}.tar.gz" -C "$PROJETO" compose.yml .env
+
+chmod 600 "${DESTINO}"/*"${DATA}"*
+
+# Apaga cópias mais antigas que a retenção
+find "$DESTINO" -type f -mtime +"$RETENCAO_DIAS" -delete
+
+echo "Backup concluído em $(date)"</code></pre>
+<pre><code>sudo chmod 750 /usr/local/bin/backup-n8n.sh
+sudo /usr/local/bin/backup-n8n.sh
+sudo ls -lh /var/backups/n8n/</code></pre>
+<p>Resultado esperado: três arquivos novos (<code>n8n_db_…dump</code>, <code>n8n_data_…tar.gz</code> e <code>config_…tar.gz</code>), com tamanho maior que zero. Na primeira execução o Docker baixa a imagem <code>alpine</code>, usada só para compactar o volume.</p>
+<h3>20.2 Agendar com o systemd</h3>
+<p>O serviço diz <strong>o que</strong> executar e o timer diz <strong>quando</strong>:</p>
+<pre><code>sudo nano /etc/systemd/system/backup-n8n.service</code></pre>
+<pre><code>[Unit]
+Description=Backup diário do n8n (banco, volume e configuração)
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/backup-n8n.sh</code></pre>
+<pre><code>sudo nano /etc/systemd/system/backup-n8n.timer</code></pre>
+<pre><code>[Unit]
+Description=Agenda o backup diário do n8n
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target</code></pre>
+<pre><code>sudo systemctl daemon-reload
+sudo systemctl enable --now backup-n8n.timer
+systemctl list-timers backup-n8n.timer
+sudo systemctl start backup-n8n.service
+sudo journalctl -u backup-n8n.service -n 20 --no-pager</code></pre>
+<p>O <code>Persistent=true</code> faz o backup rodar assim que a VM ligar caso ela estivesse desligada no horário agendado.</p>
+<div class="warning"><strong>Backup na mesma VM não protege contra perda da VM.</strong> Copie a pasta <code>/var/backups/n8n</code> para <strong>fora</strong> da VM (outro servidor, NAS ou o backup de VMs do seu hipervisor, agendado depois das 02:00). Como os arquivos contêm segredos, o destino também precisa ser restrito.</div>
+<h3>20.3 Testar a restauração (sem tocar nos dados reais)</h3>
+<p>Um backup só vale se a restauração funciona. Este teste restaura o último dump em um banco temporário e o apaga em seguida:</p>
+<pre><code>cd /opt/stacks/n8n
+ARQUIVO=$(sudo ls -t /var/backups/n8n/n8n_db_*.dump | head -1)
+echo "Testando: $ARQUIVO"
+docker compose exec -T postgres createdb -U n8n n8n_teste
+sudo cat "$ARQUIVO" | docker compose exec -T postgres pg_restore -U n8n -d n8n_teste --no-owner
+docker compose exec -T postgres psql -U n8n -d n8n_teste -c "\dt" | head -15
+docker compose exec -T postgres dropdb -U n8n n8n_teste</code></pre>
+<p>O <code>\dt</code> deve listar as tabelas do n8n (como <code>workflow_entity</code> e <code>credentials_entity</code>). Se listar, o backup está íntegro.</p>
+<h3>20.4 Restauração real (recuperação de desastre)</h3>
+<div class="danger"><strong>Este procedimento substitui o banco atual.</strong> Use somente em caso de perda de dados, com o <code>.env</code> original (mesma <code>N8N_ENCRYPTION_KEY</code>) já no lugar.</div>
+<pre><code>cd /opt/stacks/n8n
+ARQUIVO=$(sudo ls -t /var/backups/n8n/n8n_db_*.dump | head -1)
+docker compose stop n8n
+docker compose exec -T postgres dropdb -U n8n n8n
+docker compose exec -T postgres createdb -U n8n n8n
+sudo cat "$ARQUIVO" | docker compose exec -T postgres pg_restore -U n8n -d n8n --no-owner
+docker compose start n8n
+docker compose logs --tail 30 n8n</code></pre>
+<p>Para uma VM nova: instale o Docker (etapas 4 a 9), recrie <code>/opt/stacks/n8n</code> com o <code>compose.yml</code> e o <code>.env</code> do backup, suba apenas o banco (<code>docker compose up -d postgres</code>), restaure como acima e então suba o restante (<code>docker compose up -d</code>).</p>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Backup manual executado e três arquivos gerados.</label></li>
+<li><label><input class="task-check" type="checkbox">Timer diário ativo.</label></li>
+<li><label><input class="task-check" type="checkbox">Restauração testada em banco temporário.</label></li>
+<li><label><input class="task-check" type="checkbox">Cópia dos backups configurada para fora da VM.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-21">
+<h2>21. Atualizar imagens com segurança</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>Como as versões estão fixas, nada muda sozinho. Atualizar é uma decisão sua, em seis passos curtos:</p>
+<h3>21.1 Atualizar o n8n</h3>
+<ol>
+<li>Faça um backup agora: <code>sudo systemctl start backup-n8n.service</code></li>
+<li>Leia as notas da versão nova em <a href="https://github.com/n8n-io/n8n/releases" target="_blank" rel="noopener">github.com/n8n-io/n8n/releases</a>, procurando mudanças que quebram compatibilidade (<em>breaking changes</em>).</li>
+<li>Troque o número em <code>N8N_VERSION</code>: <code>nano /opt/stacks/n8n/.env</code></li>
+<li>Baixe e aplique:</li></ol>
+<pre><code>cd /opt/stacks/n8n
+docker compose pull n8n
+docker compose up -d
+docker compose logs --tail 50 n8n
+curl -sf http://localhost:5678/healthz; echo
+docker compose ps</code></pre>
+<p>O n8n migra sozinho a estrutura do banco ao iniciar uma versão nova; pode demorar um pouco. Teste no navegador se os workflows continuam abrindo e se uma execução manual funciona.</p>
+<div class="warning"><strong>Voltar atrás nem sempre é só trocar o número.</strong> Se a versão nova já migrou o banco, a versão antiga pode não conseguir abri-lo. O caminho seguro de reversão é: voltar o <code>N8N_VERSION</code> antigo no <code>.env</code> <strong>e</strong> restaurar o backup feito no passo 1 (etapa 20.4). Segundo a documentação do n8n, a versão 3.0 está prevista para outubro de 2026: leia com atenção as notas antes de sair da série 2.x e teste primeiro em uma VM de laboratório.</div>
+<h3>21.2 Atualizar o PostgreSQL</h3>
+<p>Dentro da mesma versão principal (<code>postgres:18</code>), as correções saem automaticamente: <code>docker compose pull postgres &amp;&amp; docker compose up -d</code>. <strong>Nunca</strong> mude o número principal (de <code>18</code> para <code>19</code>, por exemplo) apenas trocando a tag: o PostgreSQL não abre dados de uma versão principal anterior e o container não sobe (<code>database files are incompatible with server</code>). Esse salto exige backup, criação de um banco novo na versão nova e restauração (consulte o guia oficial de atualização do PostgreSQL).</p>
+<h3>21.3 Atualizar o Dozzle</h3>
+<pre><code>cd /opt/stacks/dozzle
+docker compose pull
+docker compose up -d</code></pre>
+<p>Em produção, troque <code>latest</code> por uma versão específica (veja as <em>Releases</em> do projeto) e atualize com o mesmo procedimento do n8n.</p>
+<h3>21.4 Atualizar o próprio Docker e o Ubuntu</h3>
+<pre><code>sudo apt update
+apt list --upgradable 2&gt;/dev/null | grep -i -E "docker|containerd"
+sudo apt upgrade -y
+docker compose ps</code></pre>
+<p>As atualizações automáticas de segurança do Ubuntu (<code>unattended-upgrades</code>) <strong>não</strong> cobrem o repositório da Docker: ele precisa ser atualizado manualmente, por exemplo uma vez por mês. Quando o Docker atualiza, os containers reiniciam; faça fora do horário de uso e confirme depois com <code>docker compose ps</code>.</p>
+</section>
+
+<section class="step" id="etapa-22">
+<h2>22. Limpeza de espaço (prune)</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<p>Com o tempo, versões antigas de imagens acumulam no disco. Veja quanto espaço o Docker usa e limpe só o que é seguro:</p>
+<pre><code>docker system df
+docker image prune          # remove só imagens "soltas" (sem tag e sem uso)
+docker image prune -a       # remove imagens que nenhum container usa (peça confirmação)
+docker builder prune        # cache de construção de imagens
+docker system df</code></pre>
+<p>Depois de uma atualização do n8n, o <code>docker image prune -a</code> libera o espaço da versão antiga. O custo é baixar a imagem de novo se você precisar voltar atrás.</p>
+<div class="danger"><strong>Nunca rode <code>docker volume prune</code> nem <code>docker system prune --volumes</code> com algum projeto parado.</strong> Um volume é considerado “sem uso” quando nenhum container o usa, e isso inclui o volume do banco de dados de um projeto que está desligado naquele momento. O resultado é perda definitiva dos dados. Para limpar imagens e containers, os comandos acima bastam.</div>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Procedimento de atualização do n8n lido e entendido (backup antes, notas da versão, teste depois).</label></li>
+<li><label><input class="task-check" type="checkbox"><code>docker system df</code> e <code>docker image prune</code> executados.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-23">
+<h2>23. Do estudo à produção</h2>
+<p><span class="pill">Executar em: a VM e no painel de DNS</span></p>
+<p>O laboratório funciona, mas é acessado por HTTP, com portas abertas para a rede. Esta etapa leva o mesmo ambiente à produção. A tabela resume o que muda; os passos seguintes mostram como.</p>
+<table><tr><th>Item</th><th>Laboratório</th><th>Produção</th></tr>
+<tr><td>Acesso ao n8n</td><td><code>http://IP:5678</code></td><td><code>https://n8n.&lt;DOMINIO&gt;</code> via Nginx</td></tr>
+<tr><td>Porta 5678</td><td>Publicada para a rede (<code>N8N_BIND=0.0.0.0</code>)</td><td>Só na VM (<code>127.0.0.1</code>)</td></tr>
+<tr><td>Cookie seguro</td><td><code>N8N_SECURE_COOKIE=false</code></td><td><code>true</code></td></tr>
+<tr><td>Dozzle (8080)</td><td>Aberto na rede, com login</td><td>Só na VM, acessado por túnel SSH</td></tr>
+<tr><td>Backup</td><td>Local, testado</td><td>Local + cópia fora da VM + backup da VM inteira</td></tr>
+<tr><td>Versões</td><td>Fixas no n8n e no PostgreSQL</td><td>Fixas também no Dozzle</td></tr>
+<tr><td>Recursos da VM</td><td>2 CPUs / 4 GB</td><td>Ajustar conforme o <code>docker stats</code> mostrar com carga real</td></tr></table>
+<h3>23.1 Criar o registro DNS e instalar o Nginx</h3>
+<p>No painel de DNS do domínio, crie um registro <code>A</code> chamado <code>n8n</code> apontando para o IP público da empresa e, no roteador, encaminhe as portas <strong>80 e 443</strong> para esta VM. As etapas 21 e 22 do guia “Montagem dos servidores Ubuntu” explicam DNS, redirecionamento de portas e Certbot em detalhe. Na VM:</p>
+<pre><code>sudo apt install -y nginx
+sudo ufw allow 80/tcp comment 'HTTP'
+sudo ufw allow 443/tcp comment 'HTTPS'
+sudo ufw status verbose</code></pre>
+<p>Se o UFW ainda não está ativo, configure-o antes (SSH liberado só para a rede interna), conforme a etapa 14 do guia de montagem. Se o servidor Nginx já existe nesta VM por causa de outras aplicações, apenas acrescente o site novo.</p>
+<h3>23.2 Site do n8n no Nginx</h3>
+<p>O n8n usa WebSocket para atualizar a tela de execução, então o proxy precisa repassar os cabeçalhos <code>Upgrade</code>. Se o arquivo <code>00-geral.conf</code> do guia anterior já existe, <strong>não repita</strong> o bloco <code>map</code>.</p>
+<pre><code>sudo nano /etc/nginx/conf.d/00-websocket.conf</code></pre>
+<pre><code>map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}</code></pre>
+<pre><code>sudo nano /etc/nginx/sites-available/n8n</code></pre>
+<pre><code>server {
+    listen 80;
+    listen [::]:80;
+    server_name n8n.&lt;DOMINIO&gt;;
+
+    access_log /var/log/nginx/n8n.access.log;
+    error_log  /var/log/nginx/n8n.error.log;
+
+    client_max_body_size 50m;
+
+    location / {
+        proxy_pass http://127.0.0.1:5678;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        $connection_upgrade;
+        proxy_buffering off;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+}</code></pre>
+<pre><code>sudo ln -s /etc/nginx/sites-available/n8n /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx</code></pre>
+<p>O <code>nginx -t</code> deve terminar com <code>syntax is ok</code> e <code>test is successful</code>. Rode sempre o teste antes do <code>reload</code>.</p>
+<h3>23.3 Ajustar o n8n para trabalhar atrás do proxy</h3>
+<p>Edite o <code>.env</code> e troque as linhas abaixo (troque <code>&lt;DOMINIO&gt;</code> pelo seu domínio). O <code>WEBHOOK_URL</code> deve manter a barra no final:</p>
+<pre><code>cd /opt/stacks/n8n
+nano .env</code></pre>
+<pre><code>N8N_BIND=127.0.0.1
+N8N_HOST=n8n.&lt;DOMINIO&gt;
+N8N_PROTOCOL=https
+WEBHOOK_URL=https://n8n.&lt;DOMINIO&gt;/
+N8N_SECURE_COOKIE=true
+N8N_PROXY_HOPS=1</code></pre>
+<pre><code>docker compose up -d
+docker compose ps
+sudo ss -lntp | grep 5678</code></pre>
+<p>O <code>up -d</code> recria o n8n com a nova configuração. Na saída do <code>ss</code>, a porta 5678 deve aparecer em <code>127.0.0.1:5678</code> e <strong>não</strong> em <code>0.0.0.0</code>.</p>
+<h3>23.4 Emitir o certificado HTTPS</h3>
+<pre><code>sudo snap install --classic certbot
+sudo ln -sf /snap/bin/certbot /usr/bin/certbot
+sudo certbot --nginx -d n8n.&lt;DOMINIO&gt;
+sudo certbot renew --dry-run</code></pre>
+<p>O Certbot pede um e-mail para avisos de expiração, ajusta o Nginx e configura o redirecionamento de HTTP para HTTPS. O <code>renew --dry-run</code> deve terminar com sucesso, provando que a renovação automática funciona. Abra <code>https://n8n.&lt;DOMINIO&gt;</code>: deve aparecer com cadeado e a tela de login do n8n.</p>
+<p>Se o n8n mostrar endereços de webhook com o IP ou <code>localhost</code>, o <code>WEBHOOK_URL</code> não foi aplicado: confira o <code>.env</code> e rode <code>docker compose up -d</code> de novo.</p>
+<h3>23.5 Fechar o Dozzle para acesso por túnel SSH</h3>
+<p>Em <code>/opt/stacks/dozzle/compose.yml</code>, mude a linha da porta para publicar só na VM:</p>
+<pre><code>    ports:
+      - "127.0.0.1:8080:8080"</code></pre>
+<pre><code>cd /opt/stacks/dozzle
+docker compose up -d</code></pre>
+<p>Para abrir o painel, a pessoa da equipe cria um túnel SSH pelo <strong>PowerShell do seu computador</strong> e acessa <code>http://localhost:8080</code> no navegador:</p>
+<pre><code>ssh -L 8080:127.0.0.1:8080 &lt;SEU_USUARIO&gt;@&lt;IP_DA_VM&gt;</code></pre>
+<p>Enquanto a sessão SSH estiver aberta, o painel aparece no seu computador. Ao fechá-la, o acesso termina. Assim o painel não fica disponível na rede.</p>
+<h3>23.6 Conferir o que está exposto e fixar versões</h3>
+<pre><code>sudo ss -lntp | grep -E 'docker-proxy|:5678|:8080'
+sudo ufw status verbose
+docker compose -f /opt/stacks/n8n/compose.yml ps
+docker compose -f /opt/stacks/dozzle/compose.yml ps</code></pre>
+<p>Nenhuma porta de container deve aparecer com <code>0.0.0.0</code>. Em seguida, em <code>/opt/stacks/dozzle/compose.yml</code>, troque <code>amir20/dozzle:latest</code> por uma versão específica e anote no cofre quais versões estão em produção.</p>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">DNS, Nginx e certificado HTTPS funcionando para <code>n8n.&lt;DOMINIO&gt;</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">n8n publicado só em <code>127.0.0.1</code>, com <code>N8N_SECURE_COOKIE=true</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">Dozzle acessível só por túnel SSH.</label></li>
+<li><label><input class="task-check" type="checkbox">Nenhuma porta de container escutando em <code>0.0.0.0</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">Backup copiado para fora da VM e restauração testada.</label></li></ul>
+</section>
+
+<section class="step" id="etapa-24">
+<h2>24. Rotina de manutenção</h2>
+<p><span class="pill">Executar em: a VM</span></p>
+<h3>Semanal (10 minutos)</h3>
+<pre><code>docker-saude.sh
+cd /opt/stacks/n8n &amp;&amp; docker compose ps
+docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+df -h /
+sudo ls -lht /var/backups/n8n/ | head -6
+systemctl list-timers backup-n8n.timer
+sudo apt update &amp;&amp; apt list --upgradable 2&gt;/dev/null | head -20
+[ -f /var/run/reboot-required ] &amp;&amp; echo "REINICIAR" || echo "Não precisa reiniciar"</code></pre>
+<p>O que olhar: nenhum container reiniciando; consumo de memória sem crescimento contínuo; disco com folga; um backup novo por dia; certificado dentro da validade (<code>sudo certbot certificates | grep -E "Domains|Expiry"</code>).</p>
+<h3>Mensal</h3>
+<ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Restaurar o último backup em um banco temporário (etapa 20.3).</label></li>
+<li><label><input class="task-check" type="checkbox">Conferir as notas de versão do n8n e decidir se atualiza (etapa 21).</label></li>
+<li><label><input class="task-check" type="checkbox">Atualizar Docker e Ubuntu (<code>sudo apt upgrade</code>), fora do horário de uso, e confirmar os containers depois.</label></li>
+<li><label><input class="task-check" type="checkbox">Rodar <code>docker image prune -a</code> para liberar imagens antigas.</label></li>
+<li><label><input class="task-check" type="checkbox">Conferir no armazenamento externo que as cópias dos backups estão chegando.</label></li></ul>
+<p>Estas caixas mensais registram a primeira execução; nos meses seguintes, use a sua agenda ou planilha de controle.</p>
+</section>
+
+<section class="step" id="etapa-25">
+<h2>25. Diagnóstico rápido quando algo falhar</h2>
+<table><tr><th>Sintoma</th><th>Comando/checagem inicial</th><th>Próximo passo</th></tr>
+<tr><td><code>permission denied … docker.sock</code></td><td><code>id | grep docker</code></td><td>Seu usuário não está no grupo <code>docker</code> ou a sessão é antiga. Refaça a etapa 8 e entre de novo no SSH.</td></tr>
+<tr><td><code>docker: 'compose' is not a docker command</code></td><td><code>dpkg -l | grep docker-compose-plugin</code></td><td>Instale o plugin: <code>sudo apt install -y docker-compose-plugin</code>. Não use o <code>docker-compose</code> com hífen.</td></tr>
+<tr><td><code>variable is not set. Defaulting to a blank string</code></td><td><code>pwd</code> e <code>ls -la</code></td><td>Você não está na pasta do projeto, ou falta a variável no <code>.env</code>.</td></tr>
+<tr><td>Erro de sintaxe no <code>compose.yml</code></td><td><code>docker compose config -q</code></td><td>A mensagem aponta a linha. Quase sempre é indentação com Tab ou espaço faltando.</td></tr>
+<tr><td>Serviço em <code>Restarting</code> (loop)</td><td><code>docker compose logs --tail 100 &lt;serviço&gt;</code></td><td>Leia a última mensagem de erro: variável faltando, senha errada ou porta em uso.</td></tr>
+<tr><td><code>port is already allocated</code> / <code>address already in use</code></td><td><code>sudo ss -lntp | grep 5678</code></td><td>Outro processo usa a porta. Pare-o ou troque a porta do lado esquerdo do mapeamento.</td></tr>
+<tr><td>n8n não conecta ao banco, <code>password authentication failed</code></td><td><code>docker compose logs postgres</code></td><td>O PostgreSQL só lê <code>POSTGRES_PASSWORD</code> quando cria o banco pela primeira vez. Trocar a senha no <code>.env</code> depois não muda a senha existente. Restaure a senha antiga ou, <strong>no laboratório</strong>, recomece com <code>docker compose down -v</code>.</td></tr>
+<tr><td>Erro de “secure cookie” no login</td><td>Veja <code>N8N_SECURE_COOKIE</code> e o endereço usado no navegador</td><td>Acesso por HTTP com a variável em <code>true</code>. Use HTTPS (produção) ou <code>false</code> só no laboratório.</td></tr>
+<tr><td>Credenciais não abrem após restaurar um backup</td><td>Compare a <code>N8N_ENCRYPTION_KEY</code> do <code>.env</code> atual com a do backup</td><td>A chave precisa ser exatamente a original. Restaure o <code>.env</code> do backup e execute <code>docker compose up -d</code>.</td></tr>
+<tr><td>Webhooks mostram IP ou <code>localhost</code></td><td><code>grep WEBHOOK_URL /opt/stacks/n8n/.env</code></td><td>Ajuste o valor (com barra no final) e rode <code>docker compose up -d</code>.</td></tr>
+<tr><td>502 Bad Gateway no navegador (produção)</td><td><code>docker compose ps</code> e <code>curl -i http://127.0.0.1:5678/healthz</code></td><td>O n8n não está no ar ou não publica em <code>127.0.0.1:5678</code>. Veja a etapa 23.3 e os logs do n8n.</td></tr>
+<tr><td><code>database files are incompatible with server</code></td><td><code>docker compose logs postgres</code></td><td>A tag do <code>postgres</code> mudou de versão principal. Volte para a tag anterior no <code>compose.yml</code> e rode <code>up -d</code>.</td></tr>
+<tr><td>Alteração no <code>.env</code> ou <code>compose.yml</code> não surtiu efeito</td><td><code>docker compose up -d</code></td><td><code>restart</code> não relê o arquivo. O <code>up -d</code> recria o que mudou.</td></tr>
+<tr><td>Containers não voltam após reiniciar a VM</td><td><code>systemctl is-enabled docker</code> e <code>docker ps -a</code></td><td>Docker precisa estar <code>enabled</code> e o serviço com <code>restart: unless-stopped</code>. Um container parado manualmente antes do reinício não volta.</td></tr>
+<tr><td>Dozzle não abre ou rejeita o login</td><td><code>docker compose logs dozzle</code> em <code>/opt/stacks/dozzle</code></td><td>Confira se <code>data/users.yml</code> existe e não está vazio. Gere de novo (etapa 19.1).</td></tr>
+<tr><td>Disco cheio</td><td><code>df -h /</code> e <code>docker system df</code></td><td>Imagens antigas: <code>docker image prune -a</code>. Logs: confirme a rotação (etapa 9). Backups: reduza a retenção ou o destino. <strong>Não</strong> use <code>volume prune</code>.</td></tr>
+<tr><td>Porta publicada acessível apesar do UFW</td><td><code>sudo ss -lntp | grep docker-proxy</code></td><td>Comportamento esperado do Docker (etapa 17.3). Publique em <code>127.0.0.1</code>.</td></tr></table>
+<p>Onde ficam os registros (logs):</p>
+<pre><code>docker compose logs --tail 100 &lt;serviço&gt;                 # logs de um serviço do projeto
+sudo journalctl -u docker -n 50 --no-pager               # serviço Docker
+sudo journalctl -u backup-n8n.service -n 50 --no-pager   # backup do n8n
+sudo tail -n 50 /var/log/nginx/n8n.error.log             # Nginx (produção)</code></pre>
+</section>
+
+<section class="step" id="etapa-26">
+<h2>26. Checklist final</h2>
+<p>Marque cada item depois de conferir. Com tudo marcado, o ambiente está pronto para uso em produção.</p>
+<h3>Docker</h3><ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Docker Engine e Compose instalados pelo repositório oficial; serviço habilitado no boot.</label></li>
+<li><label><input class="task-check" type="checkbox">Somente administradores no grupo <code>docker</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">Rotação de logs configurada em <code>/etc/docker/daemon.json</code>.</label></li></ul>
+<h3>n8n e PostgreSQL</h3><ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Versões fixas do n8n e do PostgreSQL; <code>.env</code> com permissão 600 e copiado no cofre de senhas.</label></li>
+<li><label><input class="task-check" type="checkbox">PostgreSQL sem porta publicada; n8n publicado só em <code>127.0.0.1</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">HTTPS ativo, <code>N8N_SECURE_COOKIE=true</code> e <code>WEBHOOK_URL</code> correto.</label></li>
+<li><label><input class="task-check" type="checkbox">Containers voltam sozinhos após reiniciar a VM.</label></li></ul>
+<h3>Monitoramento e backup</h3><ul class="task-list">
+<li><label><input class="task-check" type="checkbox">Equipe sabe usar <code>docker compose ps</code>, <code>logs</code>, <code>stats</code> e o script <code>docker-saude.sh</code>.</label></li>
+<li><label><input class="task-check" type="checkbox">Dozzle com login, acessado por túnel SSH.</label></li>
+<li><label><input class="task-check" type="checkbox">Backup diário automático, cópia fora da VM e restauração testada.</label></li>
+<li><label><input class="task-check" type="checkbox">Rotina semanal e mensal definida e atribuída a uma pessoa.</label></li></ul>
+<div class="note">Próximos passos, quando estiver confortável: mover o <code>compose.yml</code> para um repositório Git privado (sem o <code>.env</code>), criar redes separadas para novos serviços, adicionar alertas por e-mail ou mensagem para falhas (o Dozzle suporta alertas e webhooks) e, se o volume de workflows crescer, avaliar o modo de filas do n8n com workers.</div>
+</section>
+
+<section class="step" id="etapa-27">
+<h2>27. Referências oficiais</h2>
+<ul>
+<li><a href="https://docs.docker.com/engine/install/ubuntu/" target="_blank" rel="noopener">Docker — Instalar o Docker Engine no Ubuntu</a> e <a href="https://docs.docker.com/engine/install/linux-postinstall/" target="_blank" rel="noopener">passos pós-instalação no Linux</a>.</li>
+<li><a href="https://docs.docker.com/compose/" target="_blank" rel="noopener">Docker Compose — documentação</a>.</li>
+<li><a href="https://docs.docker.com/engine/network/packet-filtering-firewalls/" target="_blank" rel="noopener">Docker — Packet filtering and firewalls</a> (Docker e UFW).</li>
+<li><a href="https://docs.docker.com/engine/logging/drivers/json-file/" target="_blank" rel="noopener">Docker — driver de logs json-file</a> e <a href="https://docs.docker.com/engine/manage-resources/pruning/" target="_blank" rel="noopener">limpeza de objetos não usados</a>.</li>
+<li><a href="https://docs.n8n.io/deploy/host-n8n/install-options/install-using-docker-compose" target="_blank" rel="noopener">n8n — Instalar com Docker Compose</a> e <a href="https://github.com/n8n-io/n8n-hosting/tree/main/docker-compose/withPostgres" target="_blank" rel="noopener">exemplo com PostgreSQL</a>.</li>
+<li><a href="https://github.com/n8n-io/n8n/releases" target="_blank" rel="noopener">n8n — versões (releases)</a>.</li>
+<li><a href="https://hub.docker.com/_/postgres" target="_blank" rel="noopener">Imagem oficial do PostgreSQL</a> e <a href="https://www.postgresql.org/docs/18/upgrading.html" target="_blank" rel="noopener">atualização entre versões principais</a>.</li>
+<li><a href="https://dozzle.dev/guide/getting-started" target="_blank" rel="noopener">Dozzle — primeiros passos</a> e <a href="https://dozzle.dev/guide/authentication" target="_blank" rel="noopener">autenticação</a>.</li>
+<li><a href="https://nginx.org/en/docs/" target="_blank" rel="noopener">Nginx — documentação</a> e <a href="https://certbot.eff.org/instructions?os=snap&amp;ws=nginx" target="_blank" rel="noopener">Certbot com Snap e Nginx</a>.</li>
+</ul>
+<p>Endereços, versões e telas podem mudar. Confirme as instruções oficiais no dia da montagem, principalmente a versão estável do n8n, a versão do Dozzle e o procedimento de instalação do Docker.</p>
+</section>
+</main>
+
+<footer>
+<p><strong>Documento:</strong> Guia Passo a Passo — Docker Compose no Ubuntu Server 26.04</p>
+<p><strong>Ambiente:</strong> Ubuntu Server 26.04 LTS / Docker Engine / Docker Compose v2 / n8n / PostgreSQL 18 / Dozzle</p>
+<p>As marcações interativas ficam no armazenamento local do navegador; não são enviadas ao servidor nem incluídas ao imprimir.</p>
+</footer>
+</div>
+<script>
+(function(){
+  const storageKey='empresa.guia.docker-compose.ubuntu26.v1';
+  document.querySelectorAll('section.step').forEach(function(section){
+    const heading=section.querySelector('h2');
+    const label=document.createElement('label');
+    label.className='step-check';
+    label.innerHTML='<input type="checkbox" class="task-check section-task" aria-label="Marcar etapa concluída"><span>Marcar esta etapa como concluída</span>';
+    heading.insertAdjacentElement('afterend',label);
+  });
+  const allChecks=Array.from(document.querySelectorAll('input.task-check'));
+  allChecks.forEach(function(box,index){if(!box.id)box.id='check-'+(index+1);});
+  let saved={};
+  try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')||{};}catch(_error){saved={};}
+  allChecks.forEach(function(box){box.checked=saved[box.id]===true;box.addEventListener('change',update);});
+  function update(){
+    const state={};
+    allChecks.forEach(function(box){state[box.id]=box.checked;});
+    try{localStorage.setItem(storageKey,JSON.stringify(state));}catch(_error){}
+    const done=allChecks.filter(function(box){return box.checked;}).length;
+    const percent=allChecks.length?Math.round(done/allChecks.length*100):0;
+    document.getElementById('progressFill').style.width=percent+'%';
+    document.getElementById('progressText').textContent=done+' de '+allChecks.length+' marcações concluídas';
+    document.getElementById('progressPercent').textContent=percent+'%';
+    document.querySelectorAll('section.step').forEach(function(section){
+      const sectionBox=section.querySelector('.section-task');
+      section.classList.toggle('done',!!sectionBox&&sectionBox.checked);
+    });
+  }
+  document.getElementById('resetProgress').addEventListener('click',function(){
+    if(!window.confirm('Apagar todas as marcações salvas neste navegador?'))return;
+    allChecks.forEach(function(box){box.checked=false;});
+    try{localStorage.removeItem(storageKey);}catch(_error){}
+    update();
+  });
+  update();
+})();
+</script>
+</body>
+</html>

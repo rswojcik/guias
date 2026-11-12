@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roteiro de implementação — Sistema de Rotinas das Secretarias</title>
+<style>
+  :root{
+    --bg: #F7F6F1;
+    --paper: #FFFFFF;
+    --ink: #1E2A2A;
+    --ink-soft: #4B5A5A;
+    --line: #DCD8CC;
+    --teal: #2F6F62;
+    --teal-deep: #1F4E44;
+    --ochre: #A97E3E;
+    --ochre-soft: #F1E4CC;
+    --code-bg: #1E2A2A;
+    --code-ink: #E7E9E2;
+    --danger: #A3402E;
+    --radius: 6px;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.65;
+  }
+  a{color:var(--teal-deep);}
+
+  /* ---------- header ---------- */
+  header.hero{
+    background:var(--teal-deep);
+    color:#F3F1E8;
+    padding:56px 40px 44px;
+    border-bottom:4px solid var(--ochre);
+  }
+  header.hero .eyebrow{
+    font-size:13px;
+    color:#BFD6CD;
+    margin:0 0 10px;
+    letter-spacing:0.02em;
+  }
+  header.hero h1{
+    margin:0 0 14px;
+    font-size:34px;
+    font-weight:600;
+    max-width:780px;
+    letter-spacing:-0.01em;
+  }
+  header.hero p{
+    margin:0;
+    max-width:640px;
+    color:#D8E4DE;
+    font-size:16px;
+  }
+  header.hero .meta{
+    margin-top:26px;
+    display:flex;
+    gap:28px;
+    flex-wrap:wrap;
+    font-size:13px;
+    color:#AFC7BE;
+  }
+  header.hero .meta strong{ color:#EFEAD9; font-weight:600; }
+
+  /* ---------- layout ---------- */
+  .layout{
+    max-width:1180px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:260px minmax(0,1fr);
+    gap:0;
+  }
+  nav.toc{
+    padding:36px 20px 60px 40px;
+    position:sticky;
+    top:0;
+    align-self:start;
+    height:100vh;
+    overflow-y:auto;
+  }
+  nav.toc h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+    margin:0 0 14px;
+    font-weight:600;
+  }
+  nav.toc ol{
+    list-style:none;
+    margin:0;
+    padding:0;
+    counter-reset:fase;
+  }
+  nav.toc li{
+    counter-increment:fase;
+    margin-bottom:4px;
+  }
+  nav.toc a{
+    display:flex;
+    gap:10px;
+    align-items:baseline;
+    text-decoration:none;
+    color:var(--ink-soft);
+    font-size:14px;
+    padding:7px 10px;
+    border-radius:var(--radius);
+    transition:background 0.15s, color 0.15s;
+  }
+  nav.toc a::before{
+    content:counter(fase, decimal-leading-zero);
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ochre);
+    flex-shrink:0;
+  }
+  nav.toc a:hover{ background:var(--ochre-soft); color:var(--ink); }
+  nav.toc a.active{ background:var(--teal); color:#fff; }
+  nav.toc a.active::before{ color:#EAD9B8; }
+
+  main{
+    padding:48px 48px 100px;
+    min-width:0;
+  }
+
+  section.fase{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:36px 40px;
+    margin-bottom:28px;
+    scroll-margin-top:24px;
+  }
+  section.fase .fase-num{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--ochre);
+    margin:0 0 6px;
+    font-weight:600;
+  }
+  section.fase h2{
+    margin:0 0 10px;
+    font-size:23px;
+    color:var(--teal-deep);
+  }
+  section.fase > p.objetivo{
+    color:var(--ink-soft);
+    max-width:640px;
+    margin:0 0 26px;
+  }
+
+  .passo{
+    border-left:2px solid var(--line);
+    padding-left:22px;
+    margin-bottom:22px;
+    position:relative;
+  }
+  .passo::before{
+    content:"";
+    position:absolute;
+    left:-5px;
+    top:4px;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--teal);
+  }
+  .passo h3{
+    margin:0 0 6px;
+    font-size:16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .passo h3 input[type=checkbox]{
+    width:16px;
+    height:16px;
+    accent-color:var(--teal);
+    cursor:pointer;
+  }
+  .passo p{
+    margin:0 0 10px;
+    color:var(--ink-soft);
+    max-width:680px;
+  }
+  .passo p:last-child{ margin-bottom:0; }
+  .onde{
+    display:inline-block;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding:2px 8px;
+    border-radius:999px;
+    margin-bottom:8px;
+  }
+  .onde.servidor{ background:#EADFD1; color:#6B4E23; }
+  .onde.dev{ background:#DCEAE6; color:var(--teal-deep); }
+
+  pre{
+    background:var(--code-bg);
+    color:var(--code-ink);
+    padding:16px 18px;
+    border-radius:var(--radius);
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.55;
+    margin:10px 0 14px;
+  }
+  code{
+    font-family:var(--mono);
+    font-size:0.9em;
+    background:var(--ochre-soft);
+    color:var(--teal-deep);
+    padding:1px 5px;
+    border-radius:4px;
+  }
+  pre code{ background:none; color:inherit; padding:0; }
+
+  .aviso{
+    border-left:3px solid var(--ochre);
+    background:var(--ochre-soft);
+    color:#5C4419;
+    padding:12px 16px;
+    border-radius:0 var(--radius) var(--radius) 0;
+    font-size:14px;
+    margin:12px 0;
+    max-width:680px;
+  }
+  .aviso strong{ display:block; margin-bottom:2px; }
+
+  .progresso{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:22px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .barra{
+    flex:1;
+    max-width:220px;
+    height:6px;
+    background:var(--line);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .barra > span{
+    display:block;
+    height:100%;
+    background:var(--teal);
+    width:0%;
+    transition:width 0.25s;
+  }
+
+  footer{
+    max-width:1180px;
+    margin:0 auto;
+    padding:20px 48px 60px;
+    color:var(--ink-soft);
+    font-size:13px;
+  }
+
+  @media (max-width: 900px){
+    .layout{ grid-template-columns:1fr; }
+    nav.toc{ position:relative; height:auto; padding:24px 24px 0; }
+    main{ padding:24px 24px 80px; }
+    section.fase{ padding:26px 22px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .barra > span{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <p class="eyebrow">Sistema de cadastro de rotinas das secretarias</p>
+  <h1>Roteiro de implementação passo a passo</h1>
+  <p>Guia de execução para construir o sistema em Django + PostgreSQL, da VM zerada até o Admin em produção com MFA, versionamento de rotinas e aprovação multi-etapa.</p>
+  <div class="meta">
+    <span><strong>Stack</strong> · Django + PostgreSQL</span>
+    <span><strong>Infra</strong> · VM Ubuntu, uso interno</span>
+    <span><strong>Apoio</strong> · Claude Code no VS Code</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Fases do roteiro">
+    <h2>Fases</h2>
+    <ol id="toc-list">
+      <li><a href="#fase-0">Preparar a VM e o ambiente</a></li>
+      <li><a href="#fase-1">Criar o projeto Django</a></li>
+      <li><a href="#fase-2">Implementar os models</a></li>
+      <li><a href="#fase-3">Regras de negócio e services</a></li>
+      <li><a href="#fase-4">Django Admin customizado</a></li>
+      <li><a href="#fase-5">Autenticação e MFA</a></li>
+      <li><a href="#fase-6">Testes automatizados</a></li>
+      <li><a href="#fase-7">Deploy na intranet</a></li>
+      <li><a href="#fase-8">Handover e documentação</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section class="fase" id="fase-0">
+      <p class="fase-num">Fase 0</p>
+      <h2>Preparar a VM e o ambiente</h2>
+      <p class="objetivo">Deixar o servidor e a máquina de desenvolvimento prontos, com um repositório Git próprio (self-hosted, sem depender de serviço externo) já ligando os dois.</p>
+      <div class="progresso"><span class="contagem">0/6</span><div class="barra"><span></span></div></div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Atualizar o sistema e instalar dependências de SO</h3>
+        <span class="onde servidor">No servidor</span>
+        <p>Pacotes de compilação e o próprio PostgreSQL precisam estar na VM antes do Python conseguir instalar tudo.</p>
+        <pre><code>sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y python3-pip python3-venv python3-dev \
+    build-essential libpq-dev postgresql postgresql-contrib git</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Criar o banco e o usuário PostgreSQL</h3>
+        <span class="onde servidor">No servidor</span>
+        <p>Um banco dedicado, com um usuário próprio de aplicação — nunca rodar a aplicação como o superusuário do Postgres.</p>
+        <pre><code>sudo -u postgres psql
+CREATE DATABASE rotinas_secretarias;
+CREATE USER rotinas_app WITH PASSWORD 'defina_uma_senha_forte';
+ALTER ROLE rotinas_app SET client_encoding TO 'utf8';
+GRANT ALL PRIVILEGES ON DATABASE rotinas_secretarias TO rotinas_app;
+\q</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Criar o usuário de deploy e o repositório Git bare</h3>
+        <span class="onde servidor">No servidor</span>
+        <p>Um usuário dedicado só para receber pushes (separado do usuário que roda a aplicação) deixa mais claro nos logs quem fez o quê. O repositório fica local, dentro da própria intranet — sem depender de GitHub/GitLab externo.</p>
+        <pre><code>sudo adduser --disabled-password --gecos "" deploy
+sudo -u deploy mkdir -p /home/deploy/rotinas-secretarias.git
+sudo -u deploy git init --bare /home/deploy/rotinas-secretarias.git</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Configurar acesso SSH sem senha da máquina de dev para o servidor</h3>
+        <span class="onde dev">Na máquina de dev</span>
+        <p>Necessário para que o <code>git push</code> (e, mais adiante, o script de deploy automático) funcione sem pedir senha a cada vez.</p>
+        <pre><code>ssh-keygen -t ed25519 -C "dev-rotinas"
+ssh-copy-id deploy@servidor</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Criar o ambiente virtual Python local</h3>
+        <span class="onde dev">Na máquina de dev</span>
+        <p>Isola as dependências do projeto do Python do sistema. A mesma pasta será inicializada como repositório Git no próximo passo.</p>
+        <pre><code>mkdir -p ~/apps/rotinas-secretarias &amp;&amp; cd ~/apps/rotinas-secretarias
+python3 -m venv .venv
+source .venv/bin/activate</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Inicializar o repositório local, apontar para o servidor e abrir no VS Code</h3>
+        <span class="onde dev">Na máquina de dev</span>
+        <p>O repositório bare no servidor começa vazio — o primeiro <code>git push</code> só vai acontecer ao final da Fase 1, depois que o projeto Django existir. A partir daqui, o trabalho de código passa a ser feito com o Claude Code dentro desta pasta, como já definido no contexto do projeto.</p>
+        <pre><code>git init
+git remote add producao deploy@servidor:/home/deploy/rotinas-secretarias.git
+code .</code></pre>
+      </div>
+    </section>
+
+    <section class="fase" id="fase-1">
+      <p class="fase-num">Fase 1</p>
+      <h2>Criar o projeto Django</h2>
+      <p class="objetivo">Estrutura inicial do projeto, settings separados por ambiente, conexão com o PostgreSQL validada, e o primeiro push para o repositório no servidor.</p>
+      <div class="progresso"><span class="contagem">0/6</span><div class="barra"><span></span></div></div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Instalar Django e dependências principais</h3>
+        <pre><code>pip install django psycopg2-binary python-decouple \
+    django-simple-history django-two-factor-auth django-otp
+pip freeze > requirements.txt</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Iniciar o projeto e os apps</h3>
+        <p>Sugestão de divisão em apps: <code>contas</code> (usuários e acesso), <code>secretarias</code>, <code>rotinas</code> (rotina, versão, etapa de aprovação).</p>
+        <pre><code>django-admin startproject config .
+python manage.py startapp contas
+python manage.py startapp secretarias
+python manage.py startapp rotinas</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Configurar settings por ambiente</h3>
+        <p>Separar <code>settings/base.py</code>, <code>settings/dev.py</code> e <code>settings/prod.py</code>, com segredos vindos de variáveis de ambiente (arquivo <code>.env</code>, nunca versionado).</p>
+        <pre><code># config/settings/base.py
+from decouple import config
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST", default="localhost"),
+        "PORT": config("DB_PORT", default="5432"),
+    }
+}
+
+AUTH_USER_MODEL = "contas.Usuario"</code></pre>
+        <div class="aviso"><strong>Atenção</strong>Definir <code>AUTH_USER_MODEL</code> tem que acontecer antes da primeira migração — trocar depois exige recriar o banco.</div>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Registrar os apps instalados</h3>
+        <pre><code>INSTALLED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "simple_history",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
+    "two_factor",
+    "contas",
+    "secretarias",
+    "rotinas",
+]</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Validar a conexão com o banco</h3>
+        <pre><code>python manage.py check
+python manage.py migrate</code></pre>
+        <p>Se essas duas rodarem sem erro de conexão, a base da Fase 1 está fechada.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Primeiro commit e primeiro push para o repositório no servidor</h3>
+        <span class="onde dev">Na máquina de dev</span>
+        <p>Este é o momento em que o repositório bare criado na Fase 0 deixa de estar vazio. Antes de dar push, vale garantir um <code>.gitignore</code> cobrindo <code>.venv/</code>, <code>__pycache__/</code> e o arquivo <code>.env</code>.</p>
+        <pre><code>git add .
+git commit -m "Estrutura inicial do projeto Django"
+git branch -M main
+git push producao main</code></pre>
+        <div class="aviso"><strong>Ainda sem efeito no servidor</strong>Esse push só populou o repositório bare — o deploy automático (checkout + migrate + restart) só passa a acontecer depois que o hook <code>post-receive</code> for configurado, na Fase 7.</div>
+      </div>
+    </section>
+
+    <section class="fase" id="fase-2">
+      <p class="fase-num">Fase 2</p>
+      <h2>Implementar os models</h2>
+      <p class="objetivo">Traduzir o modelo de dados já fechado (Usuario, Secretaria, AcessoSecretaria, Rotina, VersaoRotina, EtapaAprovacao) em código, na ordem que respeita as dependências entre eles.</p>
+      <div class="progresso"><span class="contagem">0/5</span><div class="barra"><span></span></div></div>
+
+      <div class="passo">
+        <h3><input type="checkbox">App <code>contas</code>: <code>Usuario</code></h3>
+        <p>Estende <code>AbstractUser</code>. É o primeiro model a existir, porque todos os outros dependem dele via <code>settings.AUTH_USER_MODEL</code>.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">App <code>secretarias</code>: <code>Secretaria</code> e <code>AcessoSecretaria</code></h3>
+        <p>Inclui o campo <code>aprovadora_global</code> definido na etapa de regras de negócio.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">App <code>rotinas</code>: <code>Rotina</code>, <code>VersaoRotina</code>, <code>EtapaAprovacao</code></h3>
+        <p>Nessa ordem — <code>Rotina</code> primeiro, depois <code>VersaoRotina</code> (que referencia <code>Rotina</code>), depois <code>EtapaAprovacao</code> (que referencia <code>VersaoRotina</code>). Adicionar <code>history = HistoricalRecords()</code> em <code>Usuario</code>, <code>Secretaria</code>, <code>AcessoSecretaria</code>, <code>VersaoRotina</code> e <code>EtapaAprovacao</code>, como definido anteriormente.</p>
+        <div class="aviso"><strong>Referência-cruzada circular</strong>O FK <code>versao_atual</code> em <code>Rotina</code> aponta para <code>VersaoRotina</code>, que por sua vez tem FK para <code>Rotina</code>. Use string de referência (<code>"rotinas.VersaoRotina"</code>) e crie o campo como <code>null=True</code> para não travar a primeira migração.</div>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Gerar e revisar as migrações</h3>
+        <pre><code>python manage.py makemigrations contas secretarias rotinas
+python manage.py sqlmigrate rotinas 0001   # ler antes de aplicar</code></pre>
+        <p>Revisar o SQL gerado é especialmente importante aqui pelas normas ISO: qualquer alteração de schema em produção deveria estar documentada e revisável.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Aplicar migrações e criar o superusuário inicial</h3>
+        <pre><code>python manage.py migrate
+python manage.py createsuperuser</code></pre>
+      </div>
+    </section>
+
+    <section class="fase" id="fase-3">
+      <p class="fase-num">Fase 3</p>
+      <h2>Regras de negócio e services</h2>
+      <p class="objetivo">Implementar os métodos que orquestram o fluxo de versionamento e aprovação, já definidos no desenho: <code>enviar_para_revisao</code>, <code>decidir</code>, <code>recuar_para_rascunho</code> e a publicação automática.</p>
+      <div class="progresso"><span class="contagem">0/3</span><div class="barra"><span></span></div></div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Implementar os métodos em <code>VersaoRotina</code> e <code>EtapaAprovacao</code></h3>
+        <p>Conforme definido na etapa de modelagem: criação automática de etapas para a secretaria dona e para as secretarias <code>aprovadora_global</code>, bloqueio de edição fora de rascunho, comentário obrigatório em rejeição, publicação automática quando todas as etapas estiverem aprovadas.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Escrever os testes de regra de negócio antes de seguir</h3>
+        <p>Como essas regras são o núcleo do controle de qualidade do sistema, vale testá-las isoladamente (sem Admin, sem views) antes de conectar qualquer interface — ver Fase 6 para o detalhamento dos testes.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Validar o ciclo completo pelo shell do Django</h3>
+        <pre><code>python manage.py shell</code></pre>
+        <p>Simular manualmente: criar rotina → criar versão → enviar para revisão → aprovar as duas etapas → conferir que <code>Rotina.versao_atual</code> foi atualizada e a versão anterior virou obsoleta.</p>
+      </div>
+    </section>
+
+    <section class="fase" id="fase-4">
+      <p class="fase-num">Fase 4</p>
+      <h2>Django Admin customizado</h2>
+      <p class="objetivo">Construir as telas definidas na etapa anterior: inlines, escopo por secretaria, e a view customizada de decisão de etapa.</p>
+      <div class="progresso"><span class="contagem">0/4</span><div class="barra"><span></span></div></div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Criar o <code>AdminSite</code> customizado</h3>
+        <p>Antes de registrar qualquer model, criar <code>core/admin_site.py</code> com a checagem de <code>is_verified()</code> — mesmo que o MFA só seja finalizado na Fase 5, deixar o hook já presente evita esquecê-lo depois.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Registrar os <code>ModelAdmin</code> com o <code>EscopoPorSecretariaMixin</code></h3>
+        <p>Aplicar o mixin em <code>SecretariaAdmin</code>, <code>RotinaAdmin</code>, <code>VersaoRotinaAdmin</code>, ajustando o <code>campo_secretaria</code> conforme o caminho até a FK de secretaria em cada model.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Implementar a view customizada de aprovação/rejeição de etapa</h3>
+        <p>Sobrescrever <code>get_urls()</code> em <code>EtapaAprovacaoAdmin</code> para expor uma rota própria com o formulário de decisão e comentário, chamando <code>etapa.decidir(...)</code>.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Testar o escopo com usuários de teste</h3>
+        <p>Criar dois usuários de teste com acesso a secretarias diferentes e confirmar que cada um só enxerga o que deveria — esse é o teste manual mais importante desta fase.</p>
+      </div>
+    </section>
+
+    <section class="fase" id="fase-5">
+      <p class="fase-num">Fase 5</p>
+      <h2>Autenticação e MFA</h2>
+      <p class="objetivo">Login em duas etapas obrigatório para todos os usuários, com tela própria.</p>
+      <div class="progresso"><span class="contagem">0/4</span><div class="barra"><span></span></div></div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Configurar URLs do <code>two_factor</code></h3>
+        <pre><code># urls.py
+from two_factor.urls import urlpatterns as tf_urls
+urlpatterns = [
+    path("", include(tf_urls)),
+    path("admin/", admin_site.urls),
+]</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Ativar <code>OTPMiddleware</code> e definir <code>LOGIN_URL</code></h3>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Sobrescrever os templates de login e setup do TOTP</h3>
+        <p>Trocar a casca visual de <code>two_factor/core/login.html</code> pela identidade da associação, mantendo a lógica de wizard intacta.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Testar o cadastro de dispositivo e o login completo</h3>
+        <p>Um usuário de teste precisa conseguir: cadastrar o TOTP com QR code, deslogar, logar de novo pedindo senha + código, e só então cair no Admin.</p>
+      </div>
+    </section>
+
+    <section class="fase" id="fase-6">
+      <p class="fase-num">Fase 6</p>
+      <h2>Testes automatizados</h2>
+      <p class="objetivo">Cobrir especialmente o motor de estados de aprovação — é a parte do sistema onde um bug vira um problema de conformidade, não só um bug de software.</p>
+      <div class="progresso"><span class="contagem">0/4</span><div class="barra"><span></span></div></div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Testes de <code>enviar_para_revisao</code></h3>
+        <p>Cobrir: criação correta das etapas (dona + globais), não duplicação quando a dona já é global, erro ao enviar algo que não está em rascunho.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Testes de <code>decidir</code></h3>
+        <p>Cobrir: bloqueio por permissão (usuário sem <code>nivel_acesso=aprovador</code> na secretaria certa), exigência de comentário na rejeição, publicação automática só quando todas as etapas estão aprovadas.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Testes de <code>recuar_para_rascunho</code></h3>
+        <p>Cobrir: permissão do elaborador e do editor da secretaria dona, bloqueio quando já existe decisão registrada.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Rodar a suíte completa</h3>
+        <pre><code>python manage.py test</code></pre>
+      </div>
+    </section>
+
+    <section class="fase" id="fase-7">
+      <p class="fase-num">Fase 7</p>
+      <h2>Deploy na intranet</h2>
+      <p class="objetivo">Colocar o sistema no ar dentro da rede interna, de forma que sobreviva a reinícios da VM e passe a se atualizar sozinho a cada <code>git push</code>, sem depender de alguém logado rodando <code>runserver</code> ou copiando arquivo manualmente.</p>
+      <div class="progresso"><span class="contagem">0/7</span><div class="barra"><span></span></div></div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Preparar o diretório de trabalho a partir do repositório bare</h3>
+        <span class="onde servidor">No servidor</span>
+        <p>O serviço vai servir esta pasta — ela precisa nascer como um checkout do repositório bare criado na Fase 0, não de um <code>git clone</code> externo. O usuário <code>deploy</code> precisa ter permissão de escrita aqui (mais simples: colocá-lo no mesmo grupo do dono da pasta).</p>
+        <pre><code>git clone /home/deploy/rotinas-secretarias.git /home/usuario/apps/rotinas-secretarias
+sudo usermod -aG usuario deploy   # ajuste "usuario" para o grupo real do dono da pasta</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Instalar Gunicorn e configurar arquivos estáticos</h3>
+        <span class="onde servidor">No servidor</span>
+        <pre><code>pip install gunicorn
+python manage.py collectstatic</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Criar o serviço systemd</h3>
+        <span class="onde servidor">No servidor</span>
+        <pre><code># /etc/systemd/system/rotinas.service
+[Unit]
+Description=Rotinas das Secretarias (Gunicorn)
+After=network.target postgresql.service
+
+[Service]
+User=www-data
+WorkingDirectory=/home/usuario/apps/rotinas-secretarias
+ExecStart=/home/usuario/apps/rotinas-secretarias/.venv/bin/gunicorn \
+    config.wsgi:application --bind 127.0.0.1:8000 --workers 3
+Restart=always
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+        <pre><code>sudo systemctl enable rotinas
+sudo systemctl start rotinas</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Liberar o restart do serviço sem senha interativa</h3>
+        <span class="onde servidor">No servidor</span>
+        <p>O hook de deploy do próximo passo roda de forma não-interativa — sem isso, o <code>git push</code> ficaria travado esperando uma senha que ninguém vai digitar.</p>
+        <pre><code>sudo visudo -f /etc/sudoers.d/deploy-rotinas
+# adicionar a linha:
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl restart rotinas</code></pre>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Configurar o hook <code>post-receive</code> para deploy automático via git push</h3>
+        <span class="onde servidor">No servidor</span>
+        <p>Este script roda automaticamente toda vez que a máquina de dev der <code>git push producao main</code>: atualiza o diretório de trabalho, instala dependências novas, aplica migrations, coleta estáticos e reinicia o serviço. O <code>git push</code> passa a <em>ser</em> o deploy.</p>
+        <pre><code># /home/deploy/rotinas-secretarias.git/hooks/post-receive
+#!/bin/bash
+TARGET="/home/usuario/apps/rotinas-secretarias"
+GIT_DIR="/home/deploy/rotinas-secretarias.git"
+BRANCH="main"
+
+while read oldrev newrev ref
+do
+  if [[ $ref = "refs/heads/$BRANCH" ]]; then
+    echo "→ Deploy: atualizando $TARGET"
+    git --work-tree="$TARGET" --git-dir="$GIT_DIR" checkout -f "$BRANCH"
+    cd "$TARGET"
+    source .venv/bin/activate
+    pip install -r requirements.txt
+    python manage.py migrate --noinput
+    python manage.py collectstatic --noinput
+    sudo systemctl restart rotinas
+    echo "→ Deploy concluído: $(git --git-dir="$GIT_DIR" rev-parse --short "$newrev")"
+  fi
+done</code></pre>
+        <pre><code>sudo chmod +x /home/deploy/rotinas-secretarias.git/hooks/post-receive</code></pre>
+        <div class="aviso"><strong>Testar antes de confiar</strong>Da máquina de dev, rode <code>git push producao main</code> e acompanhe o output do hook no próprio terminal — ele aparece como se fosse parte da resposta do push.</div>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Configurar Nginx como proxy reverso interno</h3>
+        <span class="onde servidor">No servidor</span>
+        <p>Mesmo sem acesso externo, um proxy reverso simplifica servir arquivos estáticos e, futuramente, adicionar HTTPS com certificado interno.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Configurar rotina de backup do PostgreSQL</h3>
+        <span class="onde servidor">No servidor</span>
+        <pre><code># crontab -e (usuário com permissão de backup)
+0 2 * * * pg_dump -U rotinas_app rotinas_secretarias | gzip > /backups/rotinas_$(date +\%F).sql.gz</code></pre>
+        <p>Com 300 GB de disco disponíveis, manter pelo menos 30 dias de backups diários é folgado — vale revisar a política de retenção junto com o time de qualidade.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Checklist final de segurança básica</h3>
+        <span class="onde servidor">No servidor</span>
+        <p><code>DEBUG=False</code> em produção, <code>ALLOWED_HOSTS</code> restrito ao endereço interno, senha do banco fora do controle de versão, firewall (<code>ufw</code>) liberando só as portas necessárias na rede interna.</p>
+      </div>
+    </section>
+
+    <section class="fase" id="fase-8">
+      <p class="fase-num">Fase 8</p>
+      <h2>Handover e documentação</h2>
+      <p class="objetivo">Deixar o sistema sustentável por alguém com nível técnico intermediário, sem depender de quem escreveu o código estar sempre disponível.</p>
+      <div class="progresso"><span class="contagem">0/3</span><div class="barra"><span></span></div></div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Manual do usuário por perfil de acesso</h3>
+        <p>Um guia curto para cada <code>nivel_acesso</code>: o que um leitor vê, o que um editor pode fazer, como um aprovador decide uma etapa.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Runbook de operação</h3>
+        <p>Como reiniciar o serviço, onde ficam os logs, como restaurar um backup, como cadastrar uma secretaria nova — o suficiente para o apoio técnico intermediário resolver problemas comuns sem escalar.</p>
+      </div>
+
+      <div class="passo">
+        <h3><input type="checkbox">Registro de conformidade ISO</h3>
+        <p>Um documento curto ligando cada exigência (rastreabilidade de acesso, controle de versão de procedimento, aprovação multi-etapa) ao mecanismo do sistema que a atende — facilita muito a vida numa auditoria futura.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  Roteiro gerado para o projeto de sistema de cadastro de rotinas das secretarias. As caixas de marcação servem para acompanhar o progresso durante a sessão de trabalho atual e não são salvas ao recarregar a página.
+</footer>
+
+<script>
+(function(){
+  var secoes = Array.from(document.querySelectorAll("section.fase"));
+  var links = Array.from(document.querySelectorAll("#toc-list a"));
+
+  function atualizarProgresso(secao){
+    var caixas = secao.querySelectorAll('.passo input[type=checkbox]');
+    var marcadas = secao.querySelectorAll('.passo input[type=checkbox]:checked');
+    var contagem = secao.querySelector('.contagem');
+    var barra = secao.querySelector('.barra > span');
+    if(contagem) contagem.textContent = marcadas.length + "/" + caixas.length;
+    if(barra) barra.style.width = (caixas.length ? (marcadas.length / caixas.length * 100) : 0) + "%";
+  }
+
+  secoes.forEach(function(secao){
+    atualizarProgresso(secao);
+    secao.querySelectorAll('.passo input[type=checkbox]').forEach(function(cb){
+      cb.addEventListener('change', function(){ atualizarProgresso(secao); });
+    });
+  });
+
+  if("IntersectionObserver" in window){
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var link = links.find(function(l){ return l.getAttribute('href') === '#' + entry.target.id; });
+        if(!link) return;
+        if(entry.isIntersecting){
+          links.forEach(function(l){ l.classList.remove('active'); });
+          link.classList.add('active');
+        }
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    secoes.forEach(function(secao){ observer.observe(secao); });
+  }
+})();
+</script>
+
+</body>
+</html>

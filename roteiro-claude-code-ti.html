@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roteiro Claude Code — Coordenador de TI</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1e2333;
+    --border: #2a3050;
+    --accent: #4f8ef7;
+    --accent2: #7c5cfc;
+    --green: #2ecc8a;
+    --yellow: #f5c542;
+    --red: #f25f5c;
+    --text: #d4daf2;
+    --text-muted: #7a85a8;
+    --code-bg: #11141f;
+    --font-sans: 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'Cascadia Code', 'Consolas', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ── */
+  nav {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 28px 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+  }
+  .nav-logo {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .nav-logo .tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .nav-logo h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 20px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    transition: all .15s;
+  }
+  nav a:hover { color: var(--text); background: var(--surface2); }
+  nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,142,247,.08); }
+  nav .nav-section {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 16px 20px 6px;
+  }
+  nav a .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 5px;
+    background: var(--surface2); font-size: 11px; font-weight: 700;
+    flex-shrink: 0; color: var(--text-muted);
+  }
+  nav a.active .num { background: rgba(79,142,247,.2); color: var(--accent); }
+
+  /* ── MAIN ── */
+  main {
+    margin-left: 260px;
+    padding: 48px 56px;
+    max-width: 960px;
+    width: 100%;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #181c27 0%, #1a1f35 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 44px;
+    margin-bottom: 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(79,142,247,.15) 0%, transparent 70%);
+  }
+  .hero .badge {
+    display: inline-block;
+    background: rgba(79,142,247,.15);
+    color: var(--accent);
+    border: 1px solid rgba(79,142,247,.3);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+  .hero p { color: var(--text-muted); font-size: 15px; max-width: 540px; }
+  .hero-meta {
+    display: flex; gap: 24px; margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-meta span {
+    font-size: 12px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .hero-meta span::before { content: '•'; color: var(--accent); }
+
+  /* ── BLOCKS ── */
+  .block {
+    margin-bottom: 64px;
+    scroll-margin-top: 24px;
+  }
+  .block-header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .block-num {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: #fff;
+    flex-shrink: 0;
+  }
+  .block-header h2 { font-size: 20px; font-weight: 700; color: #fff; }
+  .block-header p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── SUBSECTION ── */
+  .sub {
+    margin-bottom: 32px;
+  }
+  .sub h3 {
+    font-size: 15px; font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sub h3::before {
+    content: '';
+    display: inline-block;
+    width: 4px; height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .sub h4 {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 20px 0 8px;
+  }
+  p { margin-bottom: 12px; }
+
+  /* ── CODE ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0;
+    position: relative;
+  }
+  pre .label {
+    position: absolute; top: 10px; right: 14px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    color: var(--text-muted); text-transform: uppercase;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: #a8c4ff;
+  }
+  p code, li code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12.5px;
+    color: #a8c4ff;
+  }
+  .comment { color: #4a5568; }
+  .cmd { color: #7ec8e3; }
+  .str { color: #98e4a0; }
+  .kw { color: #c792ea; }
+  .val { color: #f5c542; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-left: 4px solid;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+  }
+  .callout .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout .content { flex: 1; }
+  .callout .content strong { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .callout .content p { margin: 0; font-size: 13.5px; }
+  .callout.tip { background: rgba(46,204,138,.07); border-color: var(--green); }
+  .callout.tip .icon { color: var(--green); }
+  .callout.tip strong { color: var(--green); }
+  .callout.warn { background: rgba(245,197,66,.07); border-color: var(--yellow); }
+  .callout.warn .icon { color: var(--yellow); }
+  .callout.warn strong { color: var(--yellow); }
+  .callout.danger { background: rgba(242,95,92,.07); border-color: var(--red); }
+  .callout.danger .icon { color: var(--red); }
+  .callout.danger strong { color: var(--red); }
+  .callout.info { background: rgba(79,142,247,.07); border-color: var(--accent); }
+  .callout.info .icon { color: var(--accent); }
+  .callout.info strong { color: var(--accent); }
+
+  /* ── LISTS ── */
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 7px; font-size: 14.5px; }
+  li::marker { color: var(--accent); }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 16px 0; font-size: 13.5px;
+  }
+  th {
+    background: var(--surface2);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 11px; letter-spacing: 1px;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* ── CARDS ── */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .card .card-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .card p { font-size: 13px; color: var(--text-muted); margin: 0; }
+  .card .tag {
+    display: inline-block;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  .tag-blue { background: rgba(79,142,247,.15); color: var(--accent); }
+  .tag-green { background: rgba(46,204,138,.15); color: var(--green); }
+  .tag-purple { background: rgba(124,92,252,.15); color: var(--accent2); }
+
+  /* ── STEP LIST ── */
+  .steps { list-style: none; padding: 0; }
+  .steps li {
+    display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start;
+  }
+  .steps .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .steps .step-body { flex: 1; }
+  .steps .step-body strong { display: block; color: #fff; font-size: 14px; margin-bottom: 4px; }
+  .steps .step-body p, .steps .step-body pre { font-size: 13.5px; }
+
+  /* ── HIERARCHY TABLE ── */
+  .hierarchy {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  .hierarchy .row {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .hierarchy .row:last-child { border-bottom: none; }
+  .hierarchy .level {
+    width: 24px; height: 24px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; flex-shrink: 0;
+  }
+  .hierarchy .path { font-family: var(--font-mono); font-size: 12.5px; color: #a8c4ff; }
+  .hierarchy .desc { font-size: 13px; color: var(--text-muted); }
+
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  @media (max-width: 900px) {
+    nav { display: none; }
+    main { margin-left: 0; padding: 24px 20px; }
+    .cards { grid-template-columns: 1fr; }
+    pre .label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════ SIDEBAR ════════════ -->
+<nav>
+  <div class="nav-logo">
+    <div class="tag">Roteiro Completo</div>
+    <h2>Claude Code<br>para TI</h2>
+  </div>
+
+  <div class="nav-section">Fundamentos</div>
+  <a href="#bloco1"><span class="num">1</span> Pré-requisitos</a>
+  <a href="#bloco2"><span class="num">2</span> Instalação</a>
+
+  <div class="nav-section">Integração</div>
+  <a href="#bloco3"><span class="num">3</span> VS Code</a>
+  <a href="#b3-1">↳ Instalação</a>
+  <a href="#b3-2">↳ Recursos da extensão</a>
+  <a href="#b3-3">↳ Abordagem híbrida</a>
+  <a href="#b3-4">↳ Fluxo para TI</a>
+
+  <div class="nav-section">Memória</div>
+  <a href="#bloco4"><span class="num">4</span> CLAUDE.md</a>
+  <a href="#b4-1">↳ Por que existe</a>
+  <a href="#b4-2">↳ Hierarquia de arquivos</a>
+  <a href="#b4-3">↳ Regras e escopos</a>
+  <a href="#b4-4">↳ Memória automática</a>
+  <a href="#b4-5">↳ O que colocar</a>
+  <a href="#b4-6">↳ Exemplo para TI</a>
+
+  <div class="nav-section">Agentes</div>
+  <a href="#bloco5"><span class="num">5</span> Criando Agentes</a>
+  <a href="#b5-1">↳ Conceitos</a>
+  <a href="#b5-2">↳ Subagentes nativos</a>
+  <a href="#b5-3">↳ AGENTS.md</a>
+  <a href="#b5-4">↳ Agent Teams</a>
+  <a href="#b5-5">↳ Workflows</a>
+  <a href="#b5-6">↳ Segurança</a>
+</nav>
+
+<!-- ════════════ MAIN ════════════ -->
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="badge">Roteiro Claude Code</div>
+    <h1>Claude Code para<br>Coordenador de TI</h1>
+    <p>Do zero à automação com agentes — instalação no PowerShell, integração com VS Code, memória persistente e criação de agentes para o dia a dia de infraestrutura.</p>
+    <div class="hero-meta">
+      <span>Windows 10 1809+ / Server 2019+</span>
+      <span>PowerShell 7+</span>
+      <span>Claude Code 2.x</span>
+      <span>Plano Pro, Max, Team ou Enterprise</span>
+    </div>
+  </div>
+
+  <!-- ════ BLOCO 1 ════ -->
+  <div class="block" id="bloco1">
+    <div class="block-header">
+      <div class="block-num">1</div>
+      <div>
+        <h2>Pré-requisitos</h2>
+        <p>O que verificar antes de começar a instalação</p>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>Windows compatível</h3>
+      <p>O Claude Code roda nativamente no Windows — sem precisar de WSL. Confirme que seu sistema atende:</p>
+      <ul>
+        <li>Windows 10 build 1809 ou superior, <strong>versão 64-bit</strong></li>
+        <li>Windows 11 (qualquer edição)</li>
+        <li>Windows Server 2019 ou superior</li>
+      </ul>
+      <div class="callout danger">
+        <div class="icon">🚨</div>
+        <div class="content">
+          <strong>Windows Server 2016 não é suportado oficialmente</strong>
+          <p>A documentação lista Windows 10 1809+ ou Windows Server 2019+. Se o seu servidor é 2016, o mais seguro é instalar o Claude Code na sua <strong>estação de trabalho</strong> (Windows 10/11) e acessar o servidor remotamente (<code>Invoke-Command</code>, compartilhamentos de rede), em vez de rodar o agente dentro do servidor de produção.</p>
+        </div>
+      </div>
+      <div class="callout warn">
+        <div class="icon">⚠️</div>
+        <div class="content">
+          <strong>Atenção à versão do PowerShell</strong>
+          <p>O PowerShell que vem instalado por padrão no Windows Server (2016/2019) é o 5.1. O Claude Code recomenda o PowerShell 7+ para melhor compatibilidade e detecção automática de shell.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>Instalar o PowerShell 7+</h3>
+      <pre><span class="label">PowerShell (como Admin)</span><code><span class="comment"># Via WinGet (mais simples)</span>
+<span class="cmd">winget install</span> <span class="str">Microsoft.PowerShell</span>
+
+<span class="comment"># Ou via download direto do GitHub releases</span>
+<span class="comment"># https://github.com/PowerShell/PowerShell/releases</span>
+
+<span class="comment"># Verificar após instalação</span>
+<span class="cmd">pwsh</span> --version
+<span class="comment"># Esperado: PowerShell 7.4.x ou superior</span></code></pre>
+    </div>
+
+    <div class="sub">
+      <h3>Conta Anthropic</h3>
+      <p>Você precisará de uma conta com acesso ao Claude Code. Os planos compatíveis são Pro, Max, Team, Enterprise ou uma conta Console. <strong>O plano gratuito do claude.ai não inclui o Claude Code</strong> — sem um plano pago, o login do <code>claude</code> não funciona.</p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="tag tag-blue">Pro</div>
+          <div class="card-title">Claude Pro</div>
+          <p>Uso individual. Ideal para começar e explorar o Claude Code no seu dia a dia.</p>
+        </div>
+        <div class="card">
+          <div class="tag tag-green">Recomendado</div>
+          <div class="card-title">Teams / Enterprise</div>
+          <p>Para uso em equipes de TI. Limites maiores de uso e gerenciamento centralizado.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>Entender os produtos Anthropic</h3>
+      <p>Antes de instalar, é importante saber o que cada coisa faz:</p>
+      <table>
+        <tr><th>Produto</th><th>O que é</th><th>Como acessa</th></tr>
+        <tr><td><strong>Claude.ai</strong></td><td>Interface web/mobile de chat com o Claude</td><td>Navegador, app mobile</td></tr>
+        <tr><td><strong>Claude Code</strong></td><td>Agente de terminal que lê arquivos, executa comandos e edita código</td><td>PowerShell / VS Code</td></tr>
+        <tr><td><strong>Claude API</strong></td><td>Acesso direto ao modelo para desenvolvedores</td><td>Chamadas HTTP / SDK</td></tr>
+      </table>
+      <div class="callout info">
+        <div class="icon">💡</div>
+        <div class="content">
+          <strong>Foco deste roteiro</strong>
+          <p>Vamos trabalhar com o <strong>Claude Code</strong> — o agente de terminal. Ele é quem roda no PowerShell, lê seus scripts, acessa arquivos de configuração e executa tarefas de forma autônoma.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ BLOCO 2 ════ -->
+  <div class="block" id="bloco2">
+    <div class="block-header">
+      <div class="block-num">2</div>
+      <div>
+        <h2>Instalação do Claude Code</h2>
+        <p>Instalação nativa no Windows via PowerShell</p>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>Método principal — Instalador nativo</h3>
+      <p>Desde 2025, o Claude Code tem um instalador nativo para Windows. Não é mais necessário Node.js, npm ou WSL. O instalador baixa um único binário em <code>%USERPROFILE%\.local\bin\claude.exe</code> e mantém o Claude Code atualizado em background. Em alguns ambientes (como máquinas ingressadas em domínio) ele <strong>não adiciona essa pasta ao PATH</strong> — por isso o passo 4 abaixo.</p>
+
+      <ol class="steps">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Abra o PowerShell 7 com o seu usuário normal</strong>
+            <p>Procure por <code>pwsh</code> no menu Iniciar e abra normalmente. <strong>Não é necessário executar como Administrador</strong> — e, se você elevar com outro usuário, o binário pode ser gravado no perfil dele, não no seu. Não use CMD ou Git Bash para este passo.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Execute o instalador oficial</strong>
+            <pre><code><span class="cmd">irm</span> https://claude.ai/install.ps1 <span class="kw">|</span> <span class="cmd">iex</span></code></pre>
+            <p>O instalador baixa o binário para <code>%USERPROFILE%\.local\bin</code>.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Teste se o <code>claude</code> é reconhecido</strong>
+            <pre><code><span class="cmd">claude</span> --version</code></pre>
+            <p>Se aparecer a versão, pule para o passo 5. Se aparecer <em>"O termo 'claude' não é reconhecido…"</em>, o problema é o PATH — siga o passo 4.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Diagnosticar e corrigir o PATH</strong>
+            <pre><span class="label">PowerShell</span><code><span class="comment"># 4a) Confirmar que o binário existe (deve retornar True)</span>
+<span class="cmd">Test-Path</span> <span class="str">"$env:USERPROFILE\.local\bin\claude.exe"</span>
+
+<span class="comment"># 4b) Testar rodando pelo caminho completo, sem mexer no PATH</span>
+<span class="kw">&amp;</span> <span class="str">"$env:USERPROFILE\.local\bin\claude.exe"</span> --version
+
+<span class="comment"># 4c) Verificar se a pasta já está no PATH (sem saída = não está)</span>
+<span class="kw">$env:PATH</span> -split <span class="str">';'</span> | <span class="cmd">Select-String</span> <span class="str">'\.local\\bin'</span>
+
+<span class="comment"># 4d) Adicionar a pasta ao PATH do usuário (permanente)</span>
+<span class="kw">$currentPath</span> = [Environment]::GetEnvironmentVariable(<span class="str">'PATH'</span>, <span class="str">'User'</span>)
+[Environment]::SetEnvironmentVariable(<span class="str">'PATH'</span>, <span class="str">"$currentPath;$env:USERPROFILE\.local\bin"</span>, <span class="str">'User'</span>)</code></pre>
+            <p>Depois do 4d, <strong>feche e abra o PowerShell</strong> — janelas já abertas mantêm o PATH antigo.</p>
+            <p>Se o <code>Test-Path</code> (4a) retornar <code>False</code>, rode <code>echo $env:USERPROFILE</code> para ver em qual perfil você está e refaça o passo 2 com o seu usuário normal, sem elevação.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <strong>Verifique a instalação</strong>
+            <pre><code><span class="cmd">claude</span> --version
+<span class="cmd">claude</span> doctor    <span class="comment"># diagnóstico completo do ambiente</span></code></pre>
+          </div>
+        </li>
+      </ol>
+
+      <div class="callout warn">
+        <div class="icon">⚠️</div>
+        <div class="content">
+          <strong>Execution Policy</strong>
+          <p>Se o PowerShell bloquear a execução do script, rode uma vez: <code>Set-ExecutionPolicy RemoteSigned -Scope CurrentUser</code></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>Método alternativo — WinGet</h3>
+      <pre><code><span class="cmd">winget install</span> <span class="str">Anthropic.ClaudeCode</span>
+
+<span class="comment"># Atenção: WinGet não atualiza automaticamente.</span>
+<span class="comment"># Para atualizar manualmente:</span>
+<span class="cmd">winget upgrade</span> <span class="str">Anthropic.ClaudeCode</span></code></pre>
+    </div>
+
+    <div class="sub">
+      <h3>Autenticação e primeiro teste</h3>
+      <pre><code><span class="comment"># Iniciar uma sessão — abrirá o browser para login</span>
+<span class="cmd">claude</span>
+
+<span class="comment"># Primeiro prompt de teste: peça algo simples</span>
+<span class="str">"Liste os arquivos desta pasta e me diga o tamanho de cada um"</span>
+
+<span class="comment"># Sair da sessão</span>
+<span class="kw">/exit</span></code></pre>
+    </div>
+
+    <div class="sub">
+      <h3>Comandos slash essenciais para começar</h3>
+      <table>
+        <tr><th>Comando</th><th>O que faz</th></tr>
+        <tr><td><code>/help</code></td><td>Lista todos os comandos disponíveis</td></tr>
+        <tr><td><code>/cost</code></td><td>Exibe o custo de tokens da sessão atual</td></tr>
+        <tr><td><code>/compact</code></td><td>Resume a conversa para liberar espaço de contexto</td></tr>
+        <tr><td><code>/clear</code></td><td>Limpa o histórico da sessão</td></tr>
+        <tr><td><code>/plan</code></td><td>Ativa o Plan Mode — Claude apresenta o plano antes de executar</td></tr>
+        <tr><td><code>/memory</code></td><td>Gerencia os arquivos de memória do projeto</td></tr>
+        <tr><td><code>/exit</code></td><td>Encerra a sessão</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════ BLOCO 3 ════ -->
+  <div class="block" id="bloco3">
+    <div class="block-header">
+      <div class="block-num">3</div>
+      <div>
+        <h2>Integração com VS Code</h2>
+        <p>Extensão oficial + CLI no terminal integrado — a combinação ideal</p>
+      </div>
+    </div>
+
+    <!-- 3.1 -->
+    <div class="sub" id="b3-1">
+      <h3>3.1 — Instalação e configuração inicial</h3>
+
+      <ol class="steps">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Instalar a extensão no VS Code</strong>
+            <p>Abra o VS Code → aba Extensões (<code>Ctrl+Shift+X</code>) → pesquise <strong>"Claude Code"</strong> → instale a extensão da <strong>Anthropic</strong> (publicador oficial).</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Posicionar o painel no secondary sidebar</strong>
+            <p>Arraste a aba do Claude para o lado direito da tela. Assim você vê o código no editor e o chat lado a lado, sem perder o contexto visual do arquivo que está editando.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Autenticação</strong>
+            <p>A extensão usa a mesma conta que você autenticou via CLI. Se já fez o login no PowerShell, a extensão reconhece automaticamente. Caso contrário, um prompt de login abrirá no browser.</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Abrir o terminal integrado</strong>
+            <p>Use <code>Ctrl+`</code> para abrir o terminal integrado do VS Code. Dentro dele, rode <code>claude</code>. O Claude Code detecta automaticamente que está dentro de um workspace VS Code.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- 3.2 -->
+    <div class="sub" id="b3-2">
+      <h3>3.2 — Recursos da extensão</h3>
+
+      <h4>Diffs inline</h4>
+      <p>Quando o Claude sugere uma mudança em um arquivo, ela aparece diretamente no editor — igual ao Git diff, com linhas vermelhas (removidas) e verdes (adicionadas). Você aceita ou rejeita arquivo por arquivo, bloco por bloco. Nada é alterado sem sua aprovação explícita.</p>
+
+      <h4>@-mentions — referenciar arquivos e pastas</h4>
+      <p>No campo de prompt da extensão, digite <code>@</code> seguido do nome do arquivo ou pasta. O matching é fuzzy — você não precisa digitar o caminho completo:</p>
+      <pre><code><span class="comment"># Exemplos de @-mentions na caixa de prompt:</span>
+@backup-script      <span class="comment"># encontra backup-script.ps1</span>
+@src/scripts/       <span class="comment"># inclui toda a pasta (barra no final)</span>
+@permissoes         <span class="comment"># encontra qualquer arquivo com esse nome</span>
+
+<span class="comment"># Atalho para @-mention com caminho e número de linha exatos:</span>
+Alt+K  <span class="comment">(Windows/Linux)</span></code></pre>
+
+      <h4>Selection-aware context</h4>
+      <p>Selecione qualquer trecho de código no editor antes de digitar o prompt. O rodapé da caixa de prompt mostra quantas linhas foram selecionadas, e o Claude as enxerga automaticamente — sem precisar copiar e colar.</p>
+      <div class="callout tip">
+        <div class="icon">✅</div>
+        <div class="content">
+          <strong>Uso prático para TI</strong>
+          <p>Selecione um bloco de um script PowerShell problemático, abra o painel Claude, e escreva: "Este trecho está falhando com o erro X. Identifique o problema e corrija." O Claude já recebe o código selecionado.</p>
+        </div>
+      </div>
+
+      <h4>Diagnósticos automáticos</h4>
+      <p>A extensão lê os erros e warnings exibidos pelo VS Code (linter, PowerShell Extension, PSScriptAnalyzer). Quando você pergunta "por que este script está com erro?", o Claude já tem acesso a essas informações — você não precisa copiar mensagens de erro manualmente.</p>
+
+      <h4>Checkpoints</h4>
+      <p>Antes de qualquer mudança grande, o Claude Code cria um checkpoint automático — um ponto de restauração. Se a mudança não ficou boa, você pode desfazer tudo com um comando sem precisar do Git.</p>
+      <pre><code><span class="comment"># Ver checkpoints disponíveis</span>
+<span class="kw">/checkpoints</span>
+
+<span class="comment"># Restaurar para um checkpoint específico</span>
+<span class="kw">/restore</span> checkpoint-id</code></pre>
+    </div>
+
+    <!-- 3.3 -->
+    <div class="sub" id="b3-3">
+      <h3>3.3 — Abordagem híbrida (extensão + terminal)</h3>
+      <p>A recomendação da comunidade é usar os dois ao mesmo tempo, porque cada um tem um ponto forte diferente:</p>
+
+      <table>
+        <tr><th>Use a extensão para…</th><th>Use o terminal (CLI) para…</th></tr>
+        <tr><td>Revisar e aceitar diffs visualmente</td><td>Slash commands avançados (<code>/add-dir</code>, <code>/hooks</code>)</td></tr>
+        <tr><td>@-mention rápido de arquivos</td><td>Flags especiais e automação via PowerShell</td></tr>
+        <tr><td>Seleção de trechos de código</td><td>Comandos que chegam primeiro na CLI</td></tr>
+        <tr><td>Visualização de diagnósticos</td><td>Multi-repositório e sessões paralelas</td></tr>
+      </table>
+
+      <div class="callout info">
+        <div class="icon">💡</div>
+        <div class="content">
+          <strong>Setup recomendado no VS Code</strong>
+          <p>Painel Claude no sidebar direito → arquivo aberto no centro → terminal integrado embaixo. Assim você vê os três ao mesmo tempo, sem alternar janelas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3.4 -->
+    <div class="sub" id="b3-4">
+      <h3>3.4 — Fluxo de trabalho prático para TI</h3>
+
+      <h4>Cenário 1 — Analisar e documentar um script PowerShell</h4>
+      <pre><code><span class="comment"># Abra o arquivo no editor, selecione todo o conteúdo (Ctrl+A)</span>
+<span class="comment"># No painel Claude, escreva:</span>
+
+<span class="str">"Este script faz backup de pastas no Windows Server.
+Adicione comentários explicativos em cada bloco,
+gere um header com: Autor, Data, Propósito e Pré-requisitos."</span></code></pre>
+
+      <h4>Cenário 2 — Diagnóstico de erro a partir do output</h4>
+      <pre><code><span class="comment"># Cole o output de erro no terminal integrado ou no prompt:</span>
+
+<span class="str">"Recebi este erro ao rodar o script de backup:
+Access to the path 'D:\Dados\Meus Documentos' is denied.
+O script roda como SYSTEM via Tarefa Agendada.
+Qual a causa provável e como corrigir?"</span></code></pre>
+
+      <h4>Cenário 3 — Gerar documentação de infraestrutura</h4>
+      <pre><code><span class="comment"># No terminal integrado, dentro da pasta do projeto:</span>
+<span class="cmd">claude</span> <span class="str">"Leia todos os arquivos .ps1 desta pasta e gere um
+documento Markdown com: propósito de cada script,
+parâmetros aceitos, dependências e exemplos de uso."</span></code></pre>
+
+      <h4>Cenário 4 — Revisar GPO ou configuração de servidor</h4>
+      <pre><code><span class="comment"># Exporte a GPO para texto e abra no VS Code, depois:</span>
+<span class="str">"Analise estas políticas de GPO. Identifique configurações
+que podem causar problemas de permissão com folder
+redirection de 'Meus Documentos'. Sugira ajustes."</span></code></pre>
+    </div>
+  </div>
+
+  <!-- ════ BLOCO 4 ════ -->
+  <div class="block" id="bloco4">
+    <div class="block-header">
+      <div class="block-num">4</div>
+      <div>
+        <h2>Memória com CLAUDE.md</h2>
+        <p>Contexto persistente que o Claude carrega automaticamente em cada sessão</p>
+      </div>
+    </div>
+
+    <!-- 4.1 -->
+    <div class="sub" id="b4-1">
+      <h3>4.1 — Por que isso existe</h3>
+      <p>O Claude Code não tem memória entre sessões por padrão. Sem o CLAUDE.md, você começa cada conversa do zero: reexplicando que é um coordenador de TI, que o servidor roda Windows Server 2016, que existe uma GPO de folder redirection, que o grupo de corrida usa Supabase…</p>
+
+      <p>O CLAUDE.md é a solução: um arquivo Markdown que o Claude lê automaticamente ao iniciar qualquer sessão dentro de um projeto. É a "ficha de briefing" permanente do seu ambiente.</p>
+
+      <div class="callout tip">
+        <div class="icon">✅</div>
+        <div class="content">
+          <strong>Impacto real</strong>
+          <p>Equipes que mantêm um CLAUDE.md bem estruturado reportam redução de 50%+ nos ciclos de correção — o Claude para de re-adivinhar o contexto e começa cada sessão já alinhado com as regras do projeto.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.2 -->
+    <div class="sub" id="b4-2">
+      <h3>4.2 — A hierarquia de arquivos (5 níveis)</h3>
+      <p>O Claude Code não lê apenas um CLAUDE.md — ele monta um contexto completo combinando até 5 níveis de arquivos. Os níveis mais específicos têm prioridade sobre os mais amplos.</p>
+
+      <div class="hierarchy">
+        <div class="row">
+          <div class="level" style="background:rgba(79,142,247,.2);color:var(--accent);">G</div>
+          <div>
+            <div class="path">~/.claude/CLAUDE.md</div>
+            <div class="desc">Global — vale para todos os projetos na sua máquina. Coloque aqui suas preferências pessoais: idioma de resposta, nível de detalhe, ferramentas que você usa.</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="level" style="background:rgba(46,204,138,.2);color:var(--green);">P</div>
+          <div>
+            <div class="path">/meu-projeto/CLAUDE.md</div>
+            <div class="desc">Projeto compartilhado — commitado no repositório. Vale para toda a equipe. Coloque aqui: ambiente do servidor, convenções, pastas proibidas, comandos frequentes.</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="level" style="background:rgba(124,92,252,.2);color:var(--accent2);">A</div>
+          <div>
+            <div class="path">/meu-projeto/.claude/CLAUDE.md</div>
+            <div class="desc">Alternativo de projeto — mesma função do anterior, mas mantém a raiz do projeto mais limpa. Escolha um ou outro, não os dois.</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="level" style="background:rgba(245,197,66,.2);color:var(--yellow);">L</div>
+          <div>
+            <div class="path">/meu-projeto/CLAUDE.local.md</div>
+            <div class="desc">Local pessoal — gitignored automaticamente. Apenas você vê este arquivo. Use para preferências que não devem valer para a equipe.</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="level" style="background:rgba(242,95,92,.2);color:var(--red);">D</div>
+          <div>
+            <div class="path">/meu-projeto/subpasta/CLAUDE.md</div>
+            <div class="desc">Diretório específico — carregado sob demanda (não na inicialização). Útil para regras que só valem para um módulo ou subprojeto específico.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="icon">💡</div>
+        <div class="content">
+          <strong>Como os níveis se combinam</strong>
+          <p>Todos os arquivos são carregados e combinados — não se substituem. Em caso de conflito entre uma regra global e uma local, a mais específica vence. Pense como CSS: especificidade maior ganha.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.3 -->
+    <div class="sub" id="b4-3">
+      <h3>4.3 — Sistema de regras com .claude/rules/</h3>
+      <p>Para projetos maiores, em vez de colocar tudo em um único CLAUDE.md, você pode criar arquivos separados dentro da pasta <code>.claude/rules/</code>. Cada arquivo pode ter escopo de caminho próprio:</p>
+
+      <pre><code><span class="comment"># Estrutura de exemplo para um projeto de TI:</span>
+.claude/
+  rules/
+    seguranca.md        <span class="comment"># regras gerais de segurança</span>
+    scripts-ps1.md      <span class="comment"># regras só para arquivos .ps1</span>
+    documentacao.md     <span class="comment"># padrão de documentação</span>
+    backup.md           <span class="comment"># regras para a pasta scripts/backup/</span></code></pre>
+
+      <p>O cabeçalho de um arquivo de regra condicional por caminho:</p>
+      <pre><code><span class="comment">---
+paths:
+  - "scripts/backup/**"
+  - "scripts/manutencao/**"
+---
+
+# Regras para Scripts de Backup e Manutenção
+- Sempre testar em ambiente de homologação antes de produção
+- Nunca usar -Force sem confirmação explícita do usuário
+- Registrar em log toda operação destrutiva (Remove-Item, Format-Volume)</span></code></pre>
+
+      <div class="callout tip">
+        <div class="icon">✅</div>
+        <div class="content">
+          <strong>Regras sem paths</strong>
+          <p>Arquivos de regra sem o campo <code>paths:</code> carregam incondicionalmente — valem para qualquer contexto do projeto, assim como o CLAUDE.md principal.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.4 -->
+    <div class="sub" id="b4-4">
+      <h3>4.4 — Memória automática gerada pelo Claude</h3>
+      <p>Além dos arquivos que <em>você</em> escreve, desde a versão 2.1.59 o Claude Code grava seus próprios aprendizados em uma pasta separada:</p>
+
+      <pre><code><span class="comment"># Localização da memória automática:</span>
+~/.claude/projects/&lt;nome-do-projeto&gt;/memory/MEMORY.md
+
+<span class="comment"># O Claude carrega os primeiros 200 linhas (ou 25KB)
+# deste arquivo a cada nova sessão.
+
+# Para gerenciar, auditar ou desativar:</span>
+<span class="kw">/memory</span></code></pre>
+
+      <table>
+        <tr><th>Tipo</th><th>Quem escreve</th><th>Localização</th><th>Conteúdo típico</th></tr>
+        <tr><td><strong>CLAUDE.md</strong></td><td>Você</td><td>Pasta do projeto</td><td>Regras, contexto, convenções</td></tr>
+        <tr><td><strong>MEMORY.md</strong></td><td>Claude Code</td><td>~/.claude/projects/</td><td>Aprendizados da sessão, correções que ele registrou</td></tr>
+      </table>
+
+      <div class="callout warn">
+        <div class="icon">⚠️</div>
+        <div class="content">
+          <strong>Revise a memória automática periodicamente</strong>
+          <p>Use <code>/memory</code> para auditar o que o Claude está gravando. Se ele aprendeu algo errado (ex: uma preferência temporária que não deveria persistir), corrija antes que afete sessões futuras.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4.5 -->
+    <div class="sub" id="b4-5">
+      <h3>4.5 — O que colocar (e o que não colocar)</h3>
+
+      <div class="cards">
+        <div class="card">
+          <div class="tag tag-green">✅ Coloque</div>
+          <div class="card-title">O que pertence ao CLAUDE.md</div>
+          <p>Ambiente e versões do servidor, convenções de nomenclatura de arquivos, pastas ou sistemas que não devem ser tocados, comandos frequentes do seu ambiente, contexto dos projetos ativos, idioma de resposta preferido.</p>
+        </div>
+        <div class="card">
+          <div class="tag" style="background:rgba(242,95,92,.15);color:var(--red);">❌ Evite</div>
+          <div class="card-title">O que não pertence</div>
+          <p>Instruções que mudam a cada sessão, conteúdo que poderia ir em um hook automatizado, informações óbvias demais, detalhes que só valem para uma conversa específica.</p>
+        </div>
+      </div>
+
+      <div class="callout danger">
+        <div class="icon">🚨</div>
+        <div class="content">
+          <strong>Limite de 200 linhas por arquivo</strong>
+          <p>Modelos de linguagem conseguem seguir aproximadamente 100–150 instruções com qualidade. O sistema do Claude Code já consome ~50 instruções. Acima de 200 linhas, o CLAUDE.md começa a ser ignorado parcialmente. <strong>Seja conciso. Cada linha precisa justificar sua existência.</strong></p>
+        </div>
+      </div>
+
+      <h4>Importar arquivos externos</h4>
+      <p>Para evitar duplicação, use a sintaxe <code>@caminho/arquivo</code> para importar outros arquivos dentro do CLAUDE.md. Suporta até 4 níveis de profundidade:</p>
+      <pre><code><span class="comment"># No CLAUDE.md, você pode referenciar outros arquivos:</span>
+@docs/arquitetura-rede.md
+@docs/convencoes-nomenclatura.md
+@.claude/rules/seguranca.md</code></pre>
+    </div>
+
+    <!-- 4.6 -->
+    <div class="sub" id="b4-6">
+      <h3>4.6 — Exemplo prático para seu contexto</h3>
+      <p>Abaixo, um modelo de CLAUDE.md global e outro de CLAUDE.local.md pensados para um coordenador de TI que também gerencia um grupo de corrida:</p>
+
+      <h4>~/.claude/CLAUDE.md — Global (todas as máquinas)</h4>
+      <pre><code><span class="str"># Contexto Global — Ricardo, Coordenador de TI
+
+## Perfil
+- Função: Coordenador de TI em organização sem fins lucrativos
+- Nível técnico: Intermediário/Avançado em infraestrutura Windows
+- Idioma: Sempre responda em português brasileiro
+- Preferência de resposta: Objetivo e prático. Sem rodeios.
+
+## Ambiente principal
+- SO: Windows Server 2016 Standard
+- Shell: PowerShell 7+
+- Gerenciamento: Active Directory, GPO, NTFS permissions
+- IDE: VS Code com terminal integrado
+
+## Preferências de comportamento
+- Sempre use Plan Mode antes de sugerir mudanças destrutivas
+- Prefiro ver exemplos de código antes de explicações longas
+- Quando houver risco, destaque com um aviso claro antes de prosseguir
+- Não sugira comandos Linux se houver alternativa nativa no PowerShell
+
+## Projetos ativos
+- Infraestrutura Windows Server (scripts de backup, GPO, AD)
+- Grupo de corrida: frontend HTML/JS + Supabase + Cloudflare Pages</span></code></pre>
+
+      <h4>/projeto-infra/CLAUDE.md — Projeto de infraestrutura</h4>
+      <pre><code><span class="str"># Projeto: Infraestrutura TI
+
+## Ambiente
+- Windows Server 2016 Standard (sem WSL, sem Linux)
+- PowerShell 7.4+
+- Active Directory com GPO de folder redirection ativa
+- "Meus Documentos" redirecionado via GPO para \\servidor\usuarios\%USERNAME%
+
+## Regras críticas
+- NUNCA usar Remove-Item sem -WhatIf primeiro
+- Toda mudança de NTFS ACL deve ser precedida de backup das permissões atuais
+- A pasta D:\Dados\Legado é somente leitura — não modificar
+- Scripts de produção ficam em scripts/prod/ — só editar com aprovação
+
+## Comandos frequentes
+- Testar backup: .\scripts\backup\Run-Backup.ps1 -TestMode
+- Verificar permissões: Get-Acl "D:\Dados" | Format-List
+- Aplicar GPO: gpupdate /force
+
+## Estrutura do projeto
+scripts/
+  backup/     # scripts de backup agendado
+  manutencao/ # manutenção periódica do servidor
+  auditoria/  # relatórios e verificações de segurança
+docs/         # documentação de processos</span></code></pre>
+
+      <h4>CLAUDE.local.md — Suas preferências pessoais (não commitado)</h4>
+      <pre><code><span class="str"># Preferências pessoais — não compartilhar com equipe
+
+- Estou usando VS Code com terminal integrado, não o PowerShell standalone
+- Quando explicar algo técnico, use analogias de infraestrutura de rede
+- Meu Supabase local roda na porta 54321
+- Prefiro diffs compactos (não mostrar contexto além do necessário)</span></code></pre>
+    </div>
+  </div>
+
+  <!-- ════ BLOCO 5 ════ -->
+  <div class="block" id="bloco5">
+    <div class="block-header">
+      <div class="block-num">5</div>
+      <div>
+        <h2>Criando Agentes</h2>
+        <p>Do subagente simples ao time de agentes paralelos</p>
+      </div>
+    </div>
+
+    <!-- 5.1 -->
+    <div class="sub" id="b5-1">
+      <h3>5.1 — Conceitos fundamentais</h3>
+      <p>Antes de criar agentes, é preciso entender o que cada modo significa na prática:</p>
+
+      <table>
+        <tr><th>Modo</th><th>O que é</th><th>Quando usar</th></tr>
+        <tr>
+          <td><strong>Sessão única</strong></td>
+          <td>Você + Claude em uma conversa linear. Um contexto, um fio de execução.</td>
+          <td>Tarefas simples e rápidas do dia a dia</td>
+        </tr>
+        <tr>
+          <td><strong>Subagente</strong></td>
+          <td>O Claude principal delega uma subtarefa para outra instância Claude — dentro da mesma sessão. O subagente começa com contexto limpo e isolado.</td>
+          <td>Tarefas paralelas independentes (auditar N servidores ao mesmo tempo)</td>
+        </tr>
+        <tr>
+          <td><strong>Agent Teams</strong></td>
+          <td>Múltiplas sessões Claude rodando em paralelo, coordenadas via workspace Git compartilhado. Cada instância é uma janela de terminal separada.</td>
+          <td>Tarefas grandes demais para um único contexto</td>
+        </tr>
+      </table>
+
+      <div class="callout info">
+        <div class="icon">💡</div>
+        <div class="content">
+          <strong>O padrão central: Orquestrador → Subagentes</strong>
+          <p>O orquestrador (agente principal) recebe a tarefa grande, quebra em subtarefas independentes, distribui para subagentes, coleta os resultados e sintetiza. O importante: subagentes não compartilham contexto entre si — cada um começa "do zero" com apenas o que o orquestrador enviou.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.2 -->
+    <div class="sub" id="b5-2">
+      <h3>5.2 — Subagentes nativos do Claude Code</h3>
+      <p>Não é preciso nenhuma configuração especial para usar subagentes. Basta pedir ao Claude para tratar partes independentes de uma tarefa em paralelo:</p>
+
+      <pre><code><span class="comment"># Prompt para o orquestrador — ele cria os subagentes:</span>
+<span class="str">"Preciso auditar as permissões NTFS de 4 pastas de departamento:
+D:\Dados\RH, D:\Dados\Financeiro, D:\Dados\TI, D:\Dados\Diretoria.
+
+Para cada pasta, verifique:
+- Quem tem acesso (usuários e grupos)
+- Se há permissões herdadas inesperadas
+- Se o grupo 'Domain Users' tem acesso indevido
+
+Processe as 4 pastas em paralelo e consolide os resultados
+em um relatório Markdown único."</span></code></pre>
+
+      <p>O Claude cria subagentes para cada pasta, roda as verificações em paralelo e entrega um relatório consolidado — sem você precisar gerenciar as instâncias manualmente.</p>
+
+      <h4>Casos de uso canônicos para TI</h4>
+      <ul>
+        <li>Auditar permissões NTFS de múltiplas pastas em paralelo</li>
+        <li>Revisar vários scripts PowerShell ao mesmo tempo</li>
+        <li>Pesquisar a causa de um erro em múltiplos logs simultaneamente</li>
+        <li>Gerar documentação de múltiplos módulos independentes</li>
+        <li>Verificar conectividade ou status de múltiplos servidores</li>
+      </ul>
+    </div>
+
+    <!-- 5.3 -->
+    <div class="sub" id="b5-3">
+      <h3>5.3 — Definindo agentes customizados com AGENTS.md</h3>
+      <p>Para criar agentes reutilizáveis com nome, ferramentas e comportamento definidos, use o arquivo <code>AGENTS.md</code> na raiz do projeto:</p>
+
+      <pre><code><span class="comment"># AGENTS.md — na raiz do projeto</span>
+
+<span class="str">## security-auditor
+description: Audita permissões NTFS e configurações de segurança.
+  Leitura apenas — nunca modifica arquivos ou permissões.
+model: claude-sonnet-4-6
+tools:
+  - Read
+  - Bash(Get-Acl:*, Get-ADGroupMember:*, whoami:*)
+behavior: |
+  Você é um auditor de segurança. Seu trabalho é APENAS ler e
+  reportar. Nunca execute comandos que modifiquem o sistema.
+  Sempre apresente os resultados em tabelas Markdown.
+
+---
+
+## doc-writer
+description: Gera e atualiza documentação técnica em Markdown.
+  Só pode criar ou editar arquivos .md na pasta docs/.
+model: claude-sonnet-4-6
+tools:
+  - Read
+  - Write(docs/**/*.md)
+behavior: |
+  Você é um redator técnico. Gere documentação clara, objetiva
+  e em português. Use headers, tabelas e blocos de código.
+  Nunca toque em arquivos fora da pasta docs/.
+
+---
+
+## ps-reviewer
+description: Revisa scripts PowerShell quanto a boas práticas,
+  erros comuns e vulnerabilidades de segurança.
+model: claude-sonnet-4-6
+tools:
+  - Read
+behavior: |
+  Revise scripts PowerShell e aponte: uso de -Force sem
+  confirmação, falta de tratamento de erro (try/catch),
+  credenciais hardcoded, e desvios do PSScriptAnalyzer.</span></code></pre>
+
+      <h4>Como invocar um agente customizado</h4>
+      <pre><code><span class="comment"># No prompt do Claude (terminal ou extensão VS Code):</span>
+<span class="str">"Spawn a teammate using the security-auditor agent
+to audit D:\Dados\RH and report all permission issues."</span>
+
+<span class="str">"Use the doc-writer agent to generate documentation
+for all scripts in scripts/backup/."</span>
+
+<span class="str">"Use the ps-reviewer agent to review scripts/manutencao/Clear-Logs.ps1."</span></code></pre>
+
+      <div class="callout tip">
+        <div class="icon">✅</div>
+        <div class="content">
+          <strong>As definições do AGENTS.md são portáteis</strong>
+          <p>Uma vez criadas, as definições funcionam em qualquer contexto do Claude Code — no terminal PowerShell, na extensão VS Code e em workflows automatizados. Defina uma vez, use sempre.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.4 -->
+    <div class="sub" id="b5-4">
+      <h3>5.4 — Agent Teams (paralelismo avançado)</h3>
+      <p>Agent Teams permite múltiplas instâncias do Claude Code rodando em paralelo e se comunicando — cada uma em uma janela de terminal separada, coordenadas por um workspace Git compartilhado.</p>
+
+      <div class="callout info">
+        <div class="icon">💡</div>
+        <div class="content">
+          <strong>Lançado em fevereiro de 2026 (v2.1.32)</strong>
+          <p>Disponível como research preview. Ideal para tarefas com escopo grande demais para um único contexto de 200k tokens — como documentar toda a infraestrutura de um servidor complexo.</p>
+        </div>
+      </div>
+
+      <h4>Configuração recomendada no Windows Terminal</h4>
+      <pre><code><span class="comment"># settings.json do Windows Terminal — 5 abas de PowerShell na inicialização:</span>
+{
+  <span class="str">"startupActions"</span>: <span class="str">"new-tab -p \"PowerShell\" ;
+    new-tab -p \"PowerShell\" ;
+    new-tab -p \"PowerShell\" ;
+    new-tab -p \"PowerShell\" ;
+    new-tab -p \"PowerShell\""</span>
+}</code></pre>
+
+      <p>Em cada aba: uma instância de Claude Code rodando um agente diferente. O orquestrador (aba 1) distribui tarefas e os agentes (abas 2–5) executam em paralelo.</p>
+
+      <h4>Como os agentes se comunicam</h4>
+      <table>
+        <tr><th>Mecanismo</th><th>Como funciona</th></tr>
+        <tr><td><strong>SendMessage</strong></td><td>Cada agente tem um "mailbox". O orquestrador envia mensagens com contexto e instruções.</td></tr>
+        <tr><td><strong>Lista de tarefas</strong></td><td>Arquivo de tarefas compartilhado via Git. Agentes marcam tarefas como concluídas.</td></tr>
+        <tr><td><strong>Git workspace</strong></td><td>Arquivos produzidos por um agente ficam disponíveis para os outros via repositório compartilhado.</td></tr>
+      </table>
+
+      <h4>Exemplo de uso para TI</h4>
+      <pre><code><span class="comment"># Aba 1 — Orquestrador:</span>
+<span class="str">"Coordene 4 agentes para documentar nossa infraestrutura:
+- Agente A: documentar scripts de backup
+- Agente B: documentar configurações de AD e GPO  
+- Agente C: documentar scripts de manutenção
+- Agente D: documentar o projeto do grupo de corrida (Supabase)
+Ao final, consolide tudo em docs/infraestrutura-completa.md"</span></code></pre>
+    </div>
+
+    <!-- 5.5 -->
+    <div class="sub" id="b5-5">
+      <h3>5.5 — Workflows determinísticos</h3>
+      <p>Workflows são um nível acima dos subagentes: em vez do Claude decidir o fluxo de execução a cada turno, você define o fluxo em código (JavaScript) e os agentes executam dentro desse fluxo previsível.</p>
+
+      <p>O padrão universal: <strong>fan-out → verificação → síntese</strong></p>
+
+      <pre><code><span class="comment"># Acompanhar workflows em execução:</span>
+<span class="kw">/workflows</span>   <span class="comment"># mostra progresso em tempo real de cada agente</span></code></pre>
+
+      <h4>Exemplo de workflow para TI — Relatório de backup consolidado</h4>
+      <pre><code><span class="comment">// .claude/workflows/relatorio-backup.js
+// Padrão: fan-out → verificação → síntese</span>
+
+<span class="kw">const</span> servidores = [<span class="str">'SRV-01'</span>, <span class="str">'SRV-02'</span>, <span class="str">'SRV-03'</span>];
+
+<span class="comment">// Fan-out: 3 agentes lendo logs em paralelo</span>
+<span class="kw">const</span> resultados = <span class="kw">await</span> parallel(
+  servidores.map(srv => agent({
+    prompt: <span class="str">`Leia o log de backup de ${srv} dos últimos 7 dias.
+      Retorne: status (OK/FALHA), tamanho total, erros encontrados.`</span>,
+    tools: [<span class="str">'Read'</span>],
+    schema: BackupReportSchema <span class="comment">// JSON estruturado</span>
+  }))
+);
+
+<span class="comment">// Síntese: um agente consolida e gera o relatório</span>
+<span class="kw">await</span> agent({
+  prompt: <span class="str">`Consolide estes relatórios de backup em um único
+    documento Markdown com tabela resumo e alertas de falha:
+    ${JSON.stringify(resultados)}`</span>,
+  tools: [<span class="str">'Write'</span>],
+  output: <span class="str">'docs/relatorio-backup-semanal.md'</span>
+});</code></pre>
+
+      <div class="callout tip">
+        <div class="icon">✅</div>
+        <div class="content">
+          <strong>Quando usar workflows vs subagentes simples</strong>
+          <p>Subagentes simples (pedir ao Claude para fazer N coisas em paralelo) cobrem 80% dos casos. Workflows são para quando você quer controle preciso do fluxo — sequenciamento, verificação cruzada entre agentes, ou tarefas que se repetem regularmente com o mesmo padrão.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.6 -->
+    <div class="sub" id="b5-6">
+      <h3>5.6 — Segurança e permissões ao usar agentes</h3>
+      <p>Agentes executando de forma autônoma em um ambiente de produção exigem cuidado. Nunca dar permissão irrestrita a agentes que acessam servidores com dados reais.</p>
+
+      <h4>Hook de proteção via PowerShell</h4>
+      <pre><code><span class="comment"># .claude/hooks/block-dangerous-command.ps1
+# Bloqueia comandos destrutivos antes que o agente os execute</span>
+
+<span class="kw">param</span>([<span class="kw">string</span>]$Command)
+
+<span class="kw">$blocklist</span> = @(
+    <span class="str">'Remove-Item'</span>,
+    <span class="str">'Format-Volume'</span>,
+    <span class="str">'Clear-Disk'</span>,
+    <span class="str">'Stop-Service'</span>,
+    <span class="str">'Restart-Computer'</span>
+)
+
+<span class="kw">foreach</span> (<span class="kw">$cmd</span> <span class="kw">in</span> <span class="kw">$blocklist</span>) {
+    <span class="kw">if</span> (<span class="kw">$Command</span> -match <span class="kw">$cmd</span>) {
+        <span class="cmd">Write-Error</span> <span class="str">"BLOQUEADO: '$cmd' requer aprovação manual."</span>
+        <span class="cmd">exit</span> <span class="val">1</span>
+    }
+}
+
+<span class="cmd">exit</span> <span class="val">0</span>  <span class="comment"># Comando aprovado</span></code></pre>
+
+      <h4>Registrar o hook no projeto</h4>
+      <pre><code><span class="comment"># .claude/settings.json</span>
+{
+  <span class="str">"hooks"</span>: {
+    <span class="str">"PreToolUse"</span>: [{
+      <span class="str">"matcher"</span>: <span class="str">"Bash|PowerShell"</span>,
+      <span class="str">"hooks"</span>: [{
+        <span class="str">"type"</span>: <span class="str">"command"</span>,
+        <span class="str">"command"</span>: <span class="str">"powershell.exe -NoProfile -ExecutionPolicy Bypass -File \".claude\\hooks\\block-dangerous-command.ps1\""</span>,
+        <span class="str">"shell"</span>: <span class="str">"powershell"</span>
+      }]
+    }]
+  }
+}</code></pre>
+
+      <h4>Boas práticas de segurança com agentes</h4>
+      <ul>
+        <li><strong>Use Plan Mode sempre</strong> — antes de qualquer automação nova, peça <code>/plan</code> e leia o plano antes de aprovar a execução</li>
+        <li><strong>Allowlists no AGENTS.md</strong> — defina exatamente quais comandos cada agente pode executar (ex: <code>Bash(Get-Acl:*)</code> — só leitura de ACL)</li>
+        <li><strong>Sandbox primeiro</strong> — teste agentes em pasta de homologação antes de liberar no ambiente real</li>
+        <li><strong>Agentes de leitura vs escrita</strong> — separe agentes que só leem (auditoria) dos que escrevem (documentação, correção). Dê permissão mínima necessária</li>
+        <li><strong>Revise diffs antes de aprovar</strong> — mesmo em tarefas automatizadas, leia o diff gerado antes de aceitar</li>
+      </ul>
+
+      <div class="callout danger">
+        <div class="icon">🚨</div>
+        <div class="content">
+          <strong>Nunca use --dangerously-skip-permissions em produção</strong>
+          <p>Esta flag remove todas as verificações de segurança do Claude Code. Pode ser útil em ambientes completamente isolados e controlados, mas jamais em servidores com dados reais ou credenciais de produção.</p>
+        </div>
+      </div>
+
+      <h4>Checklist de segurança antes de ativar um agente</h4>
+      <ul>
+        <li>☐ O agente tem apenas as ferramentas que precisa (mínimo necessário)</li>
+        <li>☐ O hook de bloqueio de comandos destrutivos está ativo</li>
+        <li>☐ Testei em ambiente de homologação</li>
+        <li>☐ Tenho backup recente do ambiente que o agente vai acessar</li>
+        <li>☐ Plan Mode foi revisado e aprovado antes da execução</li>
+        <li>☐ Sei como revogar o acesso do agente rapidamente se algo sair errado</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px 32px;margin-top:40px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;">Próximos passos recomendados</div>
+    <ol style="color:var(--text);font-size:14px;">
+      <li style="margin-bottom:10px;">Instale o Claude Code via PowerShell (usuário normal, sem admin), teste o PATH com <code>claude --version</code> e rode <code>claude doctor</code> para validar o ambiente</li>
+      <li style="margin-bottom:10px;">Crie seu <code>~/.claude/CLAUDE.md</code> global com seu contexto de TI e preferências de resposta</li>
+      <li style="margin-bottom:10px;">Instale a extensão VS Code e configure o painel no secondary sidebar</li>
+      <li style="margin-bottom:10px;">Crie o <code>CLAUDE.md</code> do projeto de infraestrutura com as regras críticas do seu ambiente</li>
+      <li style="margin-bottom:10px;">Experimente seu primeiro agente: peça ao Claude para auditar permissões de 3 pastas em paralelo</li>
+      <li style="margin-bottom:10px;">Crie seu <code>AGENTS.md</code> com o <code>security-auditor</code> e o <code>doc-writer</code> e valide em homologação</li>
+    </ol>
+  </div>
+
+  <footer>
+    Roteiro criado com base na documentação oficial do Claude Code · Agosto 2026<br>
+    Para atualizações: <strong>docs.anthropic.com/en/docs/claude-code/overview</strong>
+  </footer>
+
+</main>
+
+<script>
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('nav a[href^="#"]');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => link.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(section => observer.observe(section));
+</script>
+</body>
+</html>

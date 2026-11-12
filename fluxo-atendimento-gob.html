@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fluxo de atendimento GOB — WhatsApp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy: #0A2F55;
+    --blue: #1568B0;
+    --blue-mid: #3E8EDE;
+    --blue-pale: #E7F1FC;
+    --page-bg: #F5F8FC;
+    --surface: #FFFFFF;
+    --ink: #16233A;
+    --ink-muted: #56698A;
+    --line: #D7E4F3;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--page-bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+  h1,h2,h3{
+    font-family: 'Sora', sans-serif;
+    color: var(--navy);
+    margin: 0;
+  }
+
+  /* Header */
+  .eyebrow{
+    font-size: 14px;
+    color: var(--blue);
+    font-weight: 600;
+    margin: 0 0 12px;
+  }
+  h1{
+    font-size: 34px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    max-width: 20ch;
+  }
+  .lede{
+    margin: 18px 0 0;
+    font-size: 17px;
+    color: var(--ink-muted);
+    max-width: 56ch;
+  }
+  .divider{
+    height: 1px;
+    background: var(--line);
+    margin: 48px 0;
+    border: none;
+  }
+
+  /* Timeline */
+  .timeline{
+    position: relative;
+  }
+  .step{
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 24px;
+    padding-bottom: 48px;
+  }
+  .step:last-child{ padding-bottom: 0; }
+  .step-marker{
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .step-marker .dot{
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+  .step-marker .track{
+    position: absolute;
+    top: 44px;
+    bottom: -48px;
+    width: 2px;
+    background: var(--line);
+  }
+  .step:last-child .track{ display:none; }
+
+  .step-title{
+    font-size: 19px;
+    font-weight: 600;
+    margin: 8px 0 6px;
+  }
+  .step-desc{
+    font-size: 15px;
+    color: var(--ink-muted);
+    margin: 0 0 16px;
+    max-width: 46ch;
+  }
+
+  /* Chat bubble mock */
+  .bubble{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    border-top-left-radius: 4px;
+    padding: 16px 18px;
+    font-size: 14.5px;
+    color: var(--ink);
+    max-width: 460px;
+    box-shadow: 0 1px 2px rgba(10,47,85,0.04);
+  }
+  .bubble p{ margin: 0 0 10px; }
+  .bubble p:last-child{ margin-bottom: 0; }
+  .bubble .opt{
+    color: var(--blue);
+    font-weight: 600;
+  }
+  .bubble-reply{
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 14px;
+    border-top-right-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14.5px;
+    font-weight: 600;
+  }
+
+  /* Menu list card */
+  .menu-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    border-top-left-radius: 4px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 2px rgba(10,47,85,0.04);
+    max-width: 460px;
+  }
+  .menu-prompt{
+    font-size: 14.5px;
+    color: var(--ink);
+    margin: 0 0 14px;
+  }
+  .menu-list{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .menu-list li{
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    font-size: 14.5px;
+    padding: 6px 0;
+    border-top: 1px solid var(--blue-pale);
+  }
+  .menu-list li:first-child{ border-top: none; }
+  .menu-list .n{
+    color: var(--blue);
+    font-weight: 600;
+  }
+  .menu-footer{
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--blue-pale);
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+  .menu-footer code{
+    background: var(--blue-pale);
+    color: var(--navy);
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+  }
+
+  /* Footer note */
+  .note{
+    margin-top: 56px;
+    padding: 20px 22px;
+    background: var(--blue-pale);
+    border-radius: 12px;
+    font-size: 14.5px;
+    color: var(--navy);
+  }
+  .note strong{ font-weight: 600; }
+
+  @media (max-width: 520px){
+    .wrap{ padding: 40px 18px 72px; }
+    h1{ font-size: 28px; }
+    .step{ grid-template-columns: 36px 1fr; gap: 16px; }
+    .step-marker .dot{ width: 36px; height: 36px; font-size: 15px; }
+    .step-marker .track{ top: 36px; bottom: -48px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Atendimento GOB · WhatsApp</p>
+  <h1>Do primeiro contato ao menu de secretarias</h1>
+  <p class="lede">Confira a sequência de três etapas que o bot percorre, desde a saudação inicial até a exibição do menu com os assuntos disponíveis.</p>
+
+  <hr class="divider">
+
+  <div class="timeline">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-marker">
+        <div class="dot">1</div>
+        <div class="track"></div>
+      </div>
+      <div>
+        <h3 class="step-title">Saudação personalizada</h3>
+        <p class="step-desc">O bot reconhece o contato pelo nome já salvo em interações anteriores e confirma se é obreiro do GOB.</p>
+        <div class="bubble">
+          <p>Olá <strong>[Nome]</strong>, é obreiro do GOB?</p>
+          <p>Para agilizar o atendimento responda com o Nº da opção desejada.</p>
+          <p><span class="opt">1</span> - SIM.<br><span class="opt">2</span> - NÃO.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-marker">
+        <div class="dot">2</div>
+        <div class="track"></div>
+      </div>
+      <div>
+        <h3 class="step-title">Confirmação do usuário</h3>
+        <p class="step-desc">O usuário responde com <strong>1</strong>, confirmando que é obreiro — o bot segue direto para o menu de assuntos, sem etapas intermediárias.</p>
+        <span class="bubble-reply">1</span>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-marker">
+        <div class="dot">3</div>
+      </div>
+      <div>
+        <h3 class="step-title">Menu principal de secretarias</h3>
+        <p class="step-desc">O bot exibe as opções de assunto disponíveis para atendimento.</p>
+        <div class="menu-card">
+          <p class="menu-prompt">Informe o Número entre as opções a seguir, que tenha relação com o assunto que gostaria de tratar.</p>
+          <p class="menu-prompt" style="font-weight:600; margin-bottom:8px;">Escolha uma das seguintes opções:</p>
+          <ul class="menu-list">
+            <li><span class="n">1</span><span>Secretaria da Guarda dos Selos.</span></li>
+            <li><span class="n">2</span><span>Secretaria de Finanças.</span></li>
+            <li><span class="n">3</span><span>Secretaria de Gabinete.</span></li>
+            <li><span class="n">4</span><span>Secretaria de Administração.</span></li>
+            <li><span class="n">5</span><span>Secretaria de Tecnologia.</span></li>
+            <li><span class="n">6</span><span>PROLOJA.</span></li>
+            <li><span class="n">7</span><span>E-Mail da LOJA.</span></li>
+            <li><span class="n">8</span><span>Palavra Semestral.</span></li>
+            <li><span class="n">9</span><span>Outros assuntos.</span></li>
+          </ul>
+          <p class="menu-footer">Digite <code>#inicio</code> para voltar ao menu principal ou <code>#voltar</code> para voltar ao menu anterior.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <strong>Resumo:</strong> Saudação → Confirmação (SIM) → Menu de secretarias. Nenhuma pergunta adicional é feita entre a confirmação e a exibição do menu.
+  </div>
+
+</div>
+</body>
+</html>
