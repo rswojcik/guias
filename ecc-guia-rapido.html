@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECC — Guia de referência rápida</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2e;--panel2:#0f1728;--text:#e7edf7;--muted:#a8b3c7;--accent:#4ade80;--accent2:#60a5fa;--warn:#fbbf24;--danger:#f87171;--border:#26334d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 20px 64px}
+header{border-bottom:1px solid var(--border);padding-bottom:22px;margin-bottom:28px}
+h1{margin:0 0 8px;font-size:clamp(26px,4vw,38px);line-height:1.15}
+p.lead{color:var(--muted);margin:0}
+h2{font-size:22px;margin:34px 0 12px;color:#fff;border-left:4px solid var(--accent);padding-left:10px}
+h3{font-size:17px;margin:20px 0 8px;color:#dbeafe}
+p{margin:8px 0}
+a{color:var(--accent2)}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+code{background:#1c2740;border:1px solid var(--border);border-radius:6px;padding:2px 6px;font-size:.9em}
+pre{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:14px;overflow:auto;font-size:.9rem;line-height:1.5}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.94rem}
+th,td{border:1px solid var(--border);padding:9px 10px;text-align:left;vertical-align:top}
+th{background:#182238;color:#fff}
+tr:nth-child(even) td{background:#101a2d}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:3px 9px;margin-right:6px}
+.tag.ok{background:#123527;color:#7ee2a8;border:1px solid #1f6b48}
+.tag.warn{background:#3a2c08;color:#fcd34d;border:1px solid #7a5c10}
+.tag.danger{background:#3b1414;color:#fca5a5;border:1px solid #7f2d2d}
+.tag.info{background:#122b46;color:#93c5fd;border:1px solid #29527a}
+.note{border-left:4px solid var(--warn);background:#1a1a0d;padding:12px 14px;border-radius:0 10px 10px 0;margin:14px 0}
+.danger-note{border-left-color:var(--danger);background:#240f0f}
+ul{margin:8px 0 8px 20px;padding:0}
+li{margin:5px 0}
+footer{margin-top:44px;color:var(--muted);font-size:.86rem;border-top:1px solid var(--border);padding-top:16px}
+@media(max-width:640px){table{font-size:.83rem}th,td{padding:7px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>ECC — Guia de referência rápida</h1>
+<p class="lead">Instalação, componentes, comandos e formas de aplicação do <strong>Agent Harness Performance Optimization System</strong> para Claude Code, Codex, OpenCode, Cursor e outros agentes.</p>
+</header>
+
+<div class="card">
+<span class="tag info">Repositório</span>
+<a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">github.com/affaan-m/ECC</a>
+<p>O ECC adiciona ao agente de código fluxos reutilizáveis de engenharia: planejamento, TDD, revisão de código, correção de builds, segurança, memória, hooks e pesquisa.</p>
+</div>
+
+<h2>1. O que ele entrega</h2>
+<table>
+<tr><th>Componente</th><th>Quantidade / tipo</th><th>Uso prático</th></tr>
+<tr><td>Agents</td><td>71 subagentes</td><td>Planejamento, revisão, correção de build, segurança, arquitetura e domínios específicos.</td></tr>
+<tr><td>Skills</td><td>314 workflows</td><td>TDD, pesquisa, segurança, documentação, frontend, dados, ML e operações.</td></tr>
+<tr><td>Commands</td><td>98 comandos</td><td>Atalhos como <code>/ecc:plan</code>, <code>/code-review</code> e <code>/build-fix</code>.</td></tr>
+<tr><td>Hooks e memória</td><td>Runtime</td><td>Regras, resumos de sessão, aprendizado contínuo, “instincts” e controle de contexto.</td></tr>
+<tr><td>Rules</td><td>Pacotes seletivos</td><td>Padrões sempre carregados, escolhidos por linguagem, framework ou projeto.</td></tr>
+<tr><td>AgentShield</td><td>Incluído</td><td>Varredura de prompts, hooks, MCP, permissões, segredos e arquivos de agente.</td></tr>
+<tr><td>MCP</td><td>1 conector padrão</td><td><code>chrome-devtools</code>; demais conectores são opcionais ou definidos pelo usuário.</td></tr>
+</table>
+
+<h2>2. Pré-requisitos</h2>
+<div class="card">
+<p>Para o caminho recomendado, verifique se possui:</p>
+<ul>
+<li>Node.js 18 ou superior</li>
+<li>Git</li>
+<li>Claude Code 2.1 ou superior no <code>PATH</code>, se for usar o plugin nativo</li>
+</ul>
+<pre><code>node --version
+git --version
+claude --version</code></pre>
+</div>
+
+<h2>3. Instalação recomendada</h2>
+<div class="card">
+<h3>Claude Code — instalador universal</h3>
+<p>Não clone o repositório para este método. Execute:</p>
+<pre><code>npx ecc-universal@2.2.3 setup</code></pre>
+<p>Alternativas:</p>
+<pre><code>pnpm dlx ecc-universal@2.2.3 setup
+yarn dlx ecc-universal@2.2.3 setup
+bunx ecc-universal@2.2.3 setup</code></pre>
+<p>Para uma instalação pessoal típica, escolha <strong>Global user</strong>, <strong>Standard</strong> hooks e confirme. Abra uma nova sessão do Claude Code e valide:</p>
+<pre><code>/plugin list</code></pre>
+<p>O plugin deve aparecer como <code>ecc@ecc</code> habilitado.</p>
+</div>
+
+<div class="card">
+<h3>Claude Code — plugin nativo</h3>
+<p>Dentro do Claude Code, execute:</p>
+<pre><code>/plugin marketplace add https://github.com/affaan-m/ECC
+/plugin install ecc@ecc</code></pre>
+<div class="note danger-note">
+<strong>Escolha apenas um método:</strong> instalador <code>npx</code> <em>ou</em> comandos nativos <code>/plugin</code>. Não use os dois, para evitar duplicação de skills, comandos e hooks.
+</div>
+</div>
+
+<h2>4. Instalar em vários agentes</h2>
+<div class="card">
+<p>Para configurar Claude Code, Codex e/ou Kimi Code em um fluxo único:</p>
+<pre><code>npx ecc-universal@2.2.3 install --guided</code></pre>
+<p>Para automação, especifique tudo explicitamente:</p>
+<pre><code>npx ecc-universal@2.2.3 install --guided \
+  --harness claude --harness codex --harness kimi \
+  --claude-scope local --claude-hooks standard \
+  --profile core --yes</code></pre>
+<p>Para apenas inspecionar o plano, sem gravar arquivos:</p>
+<pre><code>npx ecc-universal@2.2.3 install --guided --harness codex --dry-run
+npx ecc-universal@2.2.3 install --profile core --target kimi --dry-run</code></pre>
+</div>
+
+<h2>5. Instalação por ambiente</h2>
+<p>Clone o repositório quando for usar um adaptador manual ou uma instalação avançada:</p>
+<pre><code>git clone https://github.com/affaan-m/ECC.git
+cd ECC</code></pre>
+<table>
+<tr><th>Ambiente</th><th>Comando</th><th>Observação</th></tr>
+<tr><td>Claude Code, sem hooks</td><td><code>npx ecc-universal@2.2.3 install --profile minimal --target claude</code></td><td>Instala regras, agentes, comandos e fluxos, mas não o runtime de hooks.</td></tr>
+<tr><td>Claude Code, manual</td><td><code>./install.sh --profile full --enable-hooks</code></td><td>Não combine com <code>/plugin install</code>.</td></tr>
+<tr><td>Windows, manual</td><td><code>.\install.ps1 --profile full --enable-hooks</code></td><td>Equivalente no PowerShell.</td></tr>
+<tr><td>Codex</td><td><code>codex plugin marketplace add affaan-m/ECC</code><br><code>codex plugin add ecc@ecc</code></td><td>Caminho nativo recomendado.</td></tr>
+<tr><td>Qoder CLI</td><td><code>qoder plugins validate . --strict</code><br><code>qoder plugins install .</code></td><td>Requer Node 18+, <code>npx</code> e rede no primeiro uso do MCP.</td></tr>
+<tr><td>Cursor</td><td><code>./install.sh --profile minimal --target cursor</code></td><td>Instalação local em <code>.cursor/</code>.</td></tr>
+<tr><td>OpenCode</td><td><code>npm install &amp;&amp; npm run build:opencode &amp;&amp; ./install.sh --profile full --target opencode --enable-hooks</code></td><td>É necessário construir o payload antes.</td></tr>
+<tr><td>Gemini CLI</td><td><code>./install.sh --profile minimal --target gemini</code></td><td>Configuração local em <code>.gemini/</code>.</td></tr>
+<tr><td>Zed</td><td><code>./install.sh --profile minimal --target zed</code></td><td>Configuração local em <code>.zed/</code>.</td></tr>
+<tr><td>Kimi Code</td><td><code>./install.sh --profile minimal --target kimi</code></td><td>Cria arquivos gerenciados em <code>.kimi-code/</code>.</td></tr>
+<tr><td>GitHub Copilot</td><td><code>./install.sh --profile full --target copilot</code></td><td>Skills em <code>.github/skills/</code> e agentes em <code>.github/agents/</code>.</td></tr>
+</table>
+
+<h2>6. Regras opcionais</h2>
+<div class="card">
+<p>Plugins do Claude Code não distribuem <code>rules</code>. Para adicionar padrões de código, copie apenas os pacotes relevantes:</p>
+<pre><code>git clone https://github.com/affaan-m/ECC.git
+cd ECC
+mkdir -p ~/.claude/rules/ecc
+cp -R rules/common ~/.claude/rules/ecc/
+cp -R rules/typescript ~/.claude/rules/ecc/</code></pre>
+<p>Troque <code>typescript</code> pela sua stack, como <code>golang</code> ou <code>python</code>. Comece com <code>rules/common</code> e apenas um pacote de linguagem/framework, porque regras são contexto sempre carregado.</p>
+<h3>Escopo por projeto</h3>
+<pre><code>cd seu-projeto
+mkdir -p .claude/rules/ecc
+cp -R /caminho/para/ECC/rules/common .claude/rules/ecc/
+cp -R /caminho/para/ECC/rules/typescript .claude/rules/ecc/</code></pre>
+<p>Copie o <strong>diretório inteiro</strong> da regra, não arquivos soltos, para preservar referências relativas.</p>
+</div>
+
+<h2>7. Como aplicar no dia a dia</h2>
+<div class="grid">
+<div class="card">
+<h3>Planejar antes de codar</h3>
+<pre><code>/ecc:plan "Adicionar autenticação OAuth"</code></pre>
+<p>Use para transformar um pedido em plano técnico, riscos, decisões e tarefas acionáveis.</p>
+</div>
+<div class="card">
+<h3>Implementar com TDD</h3>
+<pre><code>tdd-workflow</code></pre>
+<p>Use quando a mudança tiver comportamento verificável: escreva o teste que falha, implemente o mínimo e refatore.</p>
+</div>
+<div class="card">
+<h3>Revisar alterações</h3>
+<pre><code>/code-review</code></pre>
+<p>Use antes de abrir PR ou após implementar uma feature, para revisar qualidade, riscos e consistência.</p>
+</div>
+<div class="card">
+<h3>Corrigir build quebrado</h3>
+<pre><code>/build-fix</code></pre>
+<p>Use quando testes, lint, type-check ou build falharem e você precisar de um caminho estruturado de diagnóstico.</p>
+</div>
+<div class="card">
+<h3>Refatorar e limpar</h3>
+<pre><code>/refactor-clean</code></pre>
+<p>Use para reduzir duplicação, remover código morto e melhorar organização sem alterar comportamento.</p>
+</div>
+<div class="card">
+<h3>Auditar segurança</h3>
+<pre><code>/security-scan
+agentshield scan --path .</code></pre>
+<p>Use antes de publicar mudanças sensíveis, integrar dependências ou revisar configurações de agente.</p>
+</div>
+<div class="card">
+<h3>Analisar uma issue</h3>
+<pre><code>/ecc:issue-review &lt;número&gt;</code></pre>
+<p>Use para investigar contexto, causas prováveis, impacto e plano de correção de uma issue do GitHub.</p>
+</div>
+<div class="card">
+<h3>Preservar contexto</h3>
+<pre><code>/save-session
+/resume-session
+/context-budget</code></pre>
+<p>Use ao pausar um trabalho longo, retomar no dia seguinte ou monitorar o consumo de contexto.</p>
+</div>
+</div>
+
+<h2>8. Fluxo de trabalho sugerido</h2>
+<div class="card">
+<p>Para uma nova funcionalidade, uma sequência simples e eficaz é:</p>
+<pre><code>/ecc:plan "Adicionar autenticação com OAuth"
+tdd-workflow
+/code-review
+/security-scan</code></pre>
+<p>Para uma correção de bug:</p>
+<pre><code>/ecc:issue-review 123
+/build-fix
+/code-review</code></pre>
+<p>Para uma refatoração:</p>
+<pre><code>/refactor-clean
+/code-review
+/security-scan</code></pre>
+</div>
+
+<h2>9. Manutenção e diagnóstico</h2>
+<div class="card">
+<p>Para uma instalação feita pelo pacote universal:</p>
+<pre><code>npx ecc-universal@2.2.3 list-installed
+npx ecc-universal@2.2.3 doctor
+npx ecc-universal@2.2.3 repair
+npx ecc-universal@2.2.3 uninstall --dry-run
+npx ecc-universal@2.2.3 uninstall</code></pre>
+<p>Em um checkout do código-fonte:</p>
+<pre><code>node scripts/ecc.js list-installed
+node scripts/ecc.js doctor
+node scripts/ecc.js repair
+node scripts/ecc.js uninstall --dry-run</code></pre>
+</div>
+
+<h2>10. Cuidados importantes</h2>
+<div class="card">
+<ul>
+<li><span class="tag danger">Segurança</span> Instale apenas pelos canais oficiais: repositório <code>affaan-m/ECC</code>, pacotes npm <code>ecc-universal</code> e <code>ecc-agentshield</code>, GitHub App, plugin <code>ecc@ecc</code> e site <code>ecc.tools</code>.</li>
+<li><span class="tag warn">Evite duplicação</span> Não use simultaneamente o instalador universal e os comandos nativos <code>/plugin</code>.</li>
+<li><span class="tag warn">Hooks</span> Não copie manualmente <code>hooks/hooks.json</code> para <code>~/.claude/settings.json</code>; o instalador reescreve os caminhos corretamente.</li>
+<li><span class="tag info">Comandos extras</span> Os comandos <code>/multi-*</code> exigem o runtime separado <code>ccg-workflow</code>.</li>
+<li><span class="tag info">Codex</span> <code>/astra-review</code> envia o diff para o Codex CLI/OpenAI e requer login prévio com <code>codex login</code>.</li>
+<li><span class="tag info">Versão</span> O <code>npx</code> fixa a versão <code>2.2.3</code>, mas isso não substitui revisar a origem e a integridade do pacote antes de executá-lo.</li>
+</ul>
+</div>
+
+<footer>
+Guia de referência rápida baseado no README do repositório <a href="https://github.com/affaan-m/ECC" target="_blank" rel="noopener">affaan-m/ECC</a>. Revise sempre a documentação oficial antes de executar comandos que alterem arquivos ou configurações do seu ambiente.
+</footer>
+</div>
+</body>
+</html>
